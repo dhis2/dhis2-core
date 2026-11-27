@@ -82,8 +82,9 @@ class TrackerEventQueryParams {
   @Getter private List<Program> accessibleTrackerPrograms = List.of();
 
   /**
-   * Program stage the event must be tracked entity must be enrolled in. This should not be set when
-   * {@link #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   * Program stage the events must belong to. This should not be set when {@link
+   * #accessibleTrackerProgramStages} is set. The user must have data read access to this program
+   * stage.
    */
   @Getter private ProgramStage programStage;
 
@@ -410,6 +411,11 @@ class TrackerEventQueryParams {
     leftJoined.addAll(nullFilteredAttributes);
     leftJoined.removeAll(getInnerJoinAttributes());
     return List.copyOf(leftJoined);
+  }
+
+  /** Returns attributes with a {@link QueryOperator#NULL} filter, which need a LEFT JOIN. */
+  public List<TrackedEntityAttribute> getNullFilteredAttributes() {
+    return List.copyOf(nullFilteredAttributes);
   }
 
   public TrackerEventQueryParams filterBy(

@@ -33,7 +33,6 @@ import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -299,34 +298,6 @@ class JobSchedulerControllerTest extends H2ControllerIntegrationTestBase {
                 "/scheduler/queues/testQueue",
                 format("{'cronExpression':'0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdB))
             .content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  void testUpdateQueue_EnableDisable() {
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/scheduler/queues/testQueue",
-            format(
-                "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}",
-                jobIdA, jobIdB, jobIdC)));
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobIdA + "/disable"));
-    JsonObject queue = GET("/scheduler/queues/testQueue").content();
-    assertEquals(
-        List.of(jobIdA, jobIdB, jobIdC),
-        queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
-        "queue sequence was changed");
-    JsonArray list = GET("/scheduler").content();
-    assertFalse(list.getObject(0).getBoolean("enabled").booleanValue());
-
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobIdA + "/enable"));
-    queue = GET("/scheduler/queues/testQueue").content();
-    assertEquals(
-        List.of(jobIdA, jobIdB, jobIdC),
-        queue.getArray("sequence").asList(JsonString.class).toList(JsonString::string),
-        "queue sequence was changed");
-    list = GET("/scheduler").content();
-    assertTrue(list.getObject(0).getBoolean("enabled").booleanValue());
   }
 
   @Test

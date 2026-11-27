@@ -29,20 +29,35 @@
  */
 package org.hisp.dhis.startup;
 
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.QUARTERLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypeStore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -57,18 +72,72 @@ class ConfigurationPopulatorTest {
 
   @Mock private ConfigurationService configurationService;
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private PeriodTypeStore periodTypeStore;
 
   private ConfigurationPopulator populator;
 
+  private Configuration config;
+
   @BeforeEach
   void setUp() {
-    populator = new ConfigurationPopulator(configurationService, dhisConfigurationProvider);
+    populator =
+        new ConfigurationPopulator(
+            configurationService, dhisConfigurationProvider, periodTypeStore);
 
     // Stubs required by executeInTransaction() regardless of the test scenario
     when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
-    Configuration config = new Configuration();
+    config = new Configuration();
     config.setSystemId("existing-id");
+    config.setDataOutputPeriodTypes(types(YEARLY));
     when(configurationService.getConfiguration()).thenReturn(config);
+    lenient()
+        .when(periodTypeStore.getAll())
+        .thenReturn(List.copyOf(types(MONTHLY, QUARTERLY, YEARLY)));
+  }
+
+  private static Set<PeriodType> types(PeriodTypeEnum... types) {
+    Set<PeriodType> set = new LinkedHashSet<>();
+    for (PeriodTypeEnum type : types) {
+      set.add(PeriodType.getPeriodType(type));
+    }
+    return set;
+  }
+
+  private Configuration captureSavedConfiguration() {
+    ArgumentCaptor<Configuration> captor = ArgumentCaptor.forClass(Configuration.class);
+    verify(configurationService).setConfiguration(captor.capture());
+    return captor.getValue();
+  }
+
+  @Test
+  void testBlankDatabaseEnablesAllDataOutputPeriodTypes() {
+    config.setDataOutputPeriodTypes(new LinkedHashSet<>());
+
+    populator.executeInTransaction();
+
+    assertEquals(
+        types(MONTHLY, QUARTERLY, YEARLY), captureSavedConfiguration().getDataOutputPeriodTypes());
+  }
+
+  @Test
+  void testYearlyIsAddedWhenMissing() {
+    config.setDataOutputPeriodTypes(types(MONTHLY));
+
+    populator.executeInTransaction();
+
+    Set<PeriodType> saved = captureSavedConfiguration().getDataOutputPeriodTypes();
+    assertEquals(2, saved.size());
+    assertTrue(saved.contains(PeriodType.getPeriodType(MONTHLY)));
+    assertTrue(saved.contains(PeriodType.getPeriodType(YEARLY)));
+  }
+
+  @Test
+  void testConfiguredTypesWithYearlyAreLeftUntouched() {
+    config.setDataOutputPeriodTypes(types(MONTHLY, YEARLY));
+
+    populator.executeInTransaction();
+
+    verify(configurationService, never()).setConfiguration(any());
   }
 
   static Stream<Arguments> baseUrlScenarios() {
@@ -88,6 +157,6 @@ class ConfigurationPopulatorTest {
     populator.executeInTransaction();
 
     verify(dhisConfigurationProvider).getServerBaseUrl();
-    verify(configurationService, never()).setConfiguration(org.mockito.ArgumentMatchers.any());
+    verify(configurationService, never()).setConfiguration(any());
   }
 }

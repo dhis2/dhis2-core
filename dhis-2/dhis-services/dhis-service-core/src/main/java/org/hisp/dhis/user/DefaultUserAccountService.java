@@ -35,6 +35,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -227,7 +229,7 @@ public class DefaultUserAccountService implements UserAccountService {
       throw new BadRequestException("Username, old password and new password are required");
     }
 
-    User user = userService.getUserByUsername(username);
+    User user = userService.getUserByUsername(userService.resolveTypedUsername(username));
     if (user == null) {
       // Generic message on purpose: do not reveal whether the username exists. Spend one password
       // verification (result deliberately ignored) so this path takes as long as the known-user
@@ -296,17 +298,29 @@ public class DefaultUserAccountService implements UserAccountService {
     userService.registerRecoveryAttempt(username);
   }
 
-  private User getUserByEmailOrUsername(String emailOrUsername) throws HiddenNotFoundException {
-    User user;
-    if (ValidationUtils.emailIsValid(emailOrUsername)) {
-      user = userService.getUserByEmail(emailOrUsername);
-    } else {
-      user = userService.getUserByUsername(emailOrUsername);
+  /**
+   * Looks up the input as typed first and falls back to the input without edge whitespace only when
+   * the typed input matches no user. Stored emails and usernames can start or end with whitespace,
+   * so an exact match wins over the stripped form.
+   */
+  private User getUserByEmailOrUsername(String input) throws HiddenNotFoundException {
+    User user = findUserByEmailOrUsername(input);
+    String stripped = Usernames.stripEdgeWhitespace(input);
+    if (user == null && !Objects.equals(stripped, input)) {
+      user = findUserByEmailOrUsername(stripped);
     }
     if (user == null) {
-      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
+      throw new HiddenNotFoundException("User does not exist: " + input);
     }
     return user;
+  }
+
+  @CheckForNull
+  private User findUserByEmailOrUsername(String emailOrUsername) {
+    if (ValidationUtils.emailIsValid(emailOrUsername)) {
+      return userService.getUserByEmail(emailOrUsername);
+    }
+    return userService.getUserByUsername(emailOrUsername);
   }
 
   private User validateRestoreLinkAndToken(UserInviteParams params) throws BadRequestException {

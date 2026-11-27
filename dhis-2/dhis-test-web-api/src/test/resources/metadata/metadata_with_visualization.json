@@ -38,7 +38,6 @@
       "code": "Superuser",
       "lastUpdated": "2016-03-17T01:51:26.775+0000",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
         "F_DATAELEMENTGROUP_PUBLIC_ADD",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",

@@ -31,6 +31,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.childOf;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.levelOne;
+import static org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitFixtures.withTrackerOrgUnits;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
@@ -57,6 +60,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
@@ -72,6 +76,8 @@ import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -203,6 +209,46 @@ class EventAggregateServiceTableLayoutTest {
     assertEquals(
         List.of(PERIOD_DIM_ID, ORGUNIT_DIM_ID, "value"),
         outputGrid.getHeaders().stream().map(GridHeader::getName).toList());
+  }
+
+  /**
+   * A tracker org unit dimension in the rows gets one row per requested org unit, also when the org
+   * units sit at different hierarchy levels: the country and the district each keep their own
+   * value.
+   */
+  @ParameterizedTest
+  @EnumSource(TrackerOrgUnitDimension.class)
+  void testTableLayoutWithMixedLevelTrackerOrgUnitDimensionInRows(
+      TrackerOrgUnitDimension dimension) {
+    OrganisationUnit country = levelOne('X');
+    OrganisationUnit district = childOf(country, 'Y');
+    peA = PeriodDimension.of(createPeriod("202401"));
+
+    EventQueryParams params =
+        withTrackerOrgUnits(
+                new EventQueryParams.Builder()
+                    .withPeriods(getList(peA), "monthly")
+                    .withPartitions(new Partitions())
+                    .withProgram(createProgram('A')),
+                dimension,
+                List.of(country, district),
+                List.of())
+            .build();
+
+    stubAggregatedData(
+        params,
+        asList(peA.getDimensionItem(), country.getUid(), 6d),
+        asList(peA.getDimensionItem(), district.getUid(), 3d));
+
+    Grid outputGrid =
+        service.getAggregatedData(
+            params,
+            new ArrayList<>(List.of(PERIOD_DIM_ID)),
+            new ArrayList<>(List.of(dimension.getUidHeader().getItem())));
+
+    assertEquals(
+        List.of(asList(country.getShortName(), 6d), asList(district.getShortName(), 3d)),
+        outputGrid.getRows());
   }
 
   private EventQueryParams params() {

@@ -159,14 +159,6 @@ class StageQuerySqlFacadeTest {
     assertFalse(where.isPresent());
   }
 
-  @Test
-  void shouldDelegateIsStageDateClassification() {
-    QueryItem item = createItem("occurreddate", true);
-    classifier.isStageDate = true;
-
-    assertTrue(subject.isStageDate(item));
-  }
-
   private QueryItem createItem(String uid, boolean withStage) {
     DataElement dataElement = new DataElement();
     dataElement.setUid(uid);

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,6 +82,10 @@ class UserAccountServiceTest {
             passwordValidationService,
             configProvider,
             passwordManager);
+    // The typed usernames in these tests have no edge whitespace, so they resolve to themselves.
+    lenient()
+        .when(userService.resolveTypedUsername(anyString()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   @Test

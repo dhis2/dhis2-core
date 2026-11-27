@@ -2648,7 +2648,7 @@ class MetadataItemsHandlerTest {
       Map<String, Object> items = getItems(grid);
       assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
       assertEquals("Completed", ((MetadataItem) items.get("COMPLETED")).getName());
-      assertEquals("Schedule", ((MetadataItem) items.get("SCHEDULE")).getName());
+      assertEquals("Scheduled", ((MetadataItem) items.get("SCHEDULE")).getName());
     }
 
     @Test

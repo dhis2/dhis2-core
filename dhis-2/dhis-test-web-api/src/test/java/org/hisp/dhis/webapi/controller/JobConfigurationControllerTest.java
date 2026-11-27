@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -419,49 +418,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
         updateExpectSuccess(obj -> obj.addMember("queuePosition", toJson(42))).getQueuePosition());
   }
 
-  @Test
-  void testEnableIsReadOnly_Update() {
-    JsonJobConfiguration config = createExpectSuccess(Map.of());
-    assertTrue(config.isEnabled(), "newly created config should be enabled");
-    String jobId = config.getId();
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
-    config = getJsonJobConfiguration(jobId);
-    assertFalse(config.isEnabled());
-    config = updateExpectSuccess(jobId, Map.of("name", "new_name"));
-    assertEquals("new_name", config.getName());
-    assertFalse(config.isEnabled(), "updating should not affect enabled");
-    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
-    config = getJsonJobConfiguration(jobId);
-    assertTrue(config.isEnabled());
-    config = updateExpectSuccess(jobId, Map.of("name", "new_name2"));
-    assertEquals("new_name2", config.getName());
-    assertTrue(config.isEnabled(), "updating should not affect enabled");
-  }
-
-  @Test
-  void testEnableRequiresSchedule_Update() {
-    JsonJobConfiguration config = createExpectSuccess(Map.of());
-    assertTrue(config.isEnabled(), "newly created config should be enabled");
-    assertNotNull(config.getCronExpression());
-    String jobId = config.getId();
-
-    // create another job
-    String jobJson =
-        "{'name':'b','jobType':'DATA_INTEGRITY','cronExpression':'0 0 19 ? * MON-FRI'}";
-    String jobId2 = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", jobJson));
-    // make both part of a queue
-    String queueJson =
-        format("{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobId, jobId2);
-    assertStatus(HttpStatus.CREATED, POST("/scheduler/queues/testQueue", queueJson));
-    // delete the queue
-    assertStatus(HttpStatus.NO_CONTENT, DELETE("/scheduler/queues/testQueue"));
-
-    config = getJsonJobConfiguration(jobId);
-    assertNull(config.getCronExpression());
-
-    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/enable"));
-  }
-
   private JsonJobConfiguration createExpectSuccess(Map<String, Object> extra) {
     return createExpectSuccess(MINIMAL_CRON_CONFIG, extra);
   }
@@ -480,12 +436,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
           minimal.forEach((name, value) -> obj.addMember(name, toJson(value)));
           extra.forEach((name, value) -> obj.addMember(name, toJson(value)));
         });
-  }
-
-  private JsonJobConfiguration updateExpectSuccess(String jobId, Map<String, Object> extra) {
-    JsonNode config = newJsonJobConfiguration(MINIMAL_CRON_CONFIG, extra);
-    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, config.toString()));
-    return getJsonJobConfiguration(jobId);
   }
 
   private JsonJobConfiguration updateExpectSuccess(Consumer<JsonObjectBuilder> addMembers) {

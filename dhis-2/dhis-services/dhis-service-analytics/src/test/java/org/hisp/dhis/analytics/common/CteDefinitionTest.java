@@ -136,6 +136,32 @@ class CteDefinitionTest {
           () -> assertFalse(cte.hasValueName()),
           () -> assertFalse(cte.isRowContext()));
     }
+
+    @Test
+    @DisplayName("Only the CTEs feeding a program indicator are program indicator inputs")
+    void programIndicatorInputs() {
+      assertAll(
+          () ->
+              assertTrue(
+                  CteDefinition.forVariable("k", "sql", "enrollment").isProgramIndicatorInput()),
+          () ->
+              assertTrue(
+                  CteDefinition.forProgramStageDataElement("k", "sql", "enrollment", 1)
+                      .isProgramIndicatorInput()),
+          () ->
+              assertTrue(
+                  CteDefinition.forD2Function("k", "sql", "enrollment").isProgramIndicatorInput()),
+          () ->
+              assertTrue(CteDefinition.forRelationshipCount("k", "sql").isProgramIndicatorInput()),
+          () ->
+              assertFalse(
+                  CteDefinition.forProgramIndicator("pi", AnalyticsType.ENROLLMENT, "sql", false)
+                      .isProgramIndicatorInput()),
+          () -> assertFalse(CteDefinition.forFilter("k", "ps", "sql").isProgramIndicatorInput()),
+          () -> assertFalse(CteDefinition.forEnrollmentValue("sql").isProgramIndicatorInput()),
+          () -> assertFalse(new CteDefinition("ps", "de", "sql", 0).isProgramIndicatorInput()),
+          () -> assertFalse(new CteDefinition("sql", "where x").isProgramIndicatorInput()));
+    }
   }
 
   @Nested

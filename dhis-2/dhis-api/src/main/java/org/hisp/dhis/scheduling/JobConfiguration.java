@@ -232,8 +232,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   }
 
   public JobStatus getJobStatus() {
-    if (jobStatus != null)
-      return enabled && jobStatus == JobStatus.DISABLED ? JobStatus.SCHEDULED : jobStatus;
+    if (jobStatus != null) return jobStatus;
     if (getSchedulingType() == SchedulingType.ONCE_ASAP) return JobStatus.NOT_STARTED;
     return JobStatus.SCHEDULED;
   }
@@ -381,13 +380,6 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         && cronExpression == null
         && delay == null
         && queueName == null;
-  }
-
-  public boolean isReadyToRun() {
-    return schedulingType == SchedulingType.ONCE_ASAP
-        || schedulingType == SchedulingType.CRON && cronExpression != null
-        || schedulingType == SchedulingType.FIXED_DELAY && delay != null
-        || queueName != null && queuePosition > 0;
   }
 
   @Nonnull

@@ -130,6 +130,22 @@ public interface UserService {
   User getUserByUsernameIgnoreCase(String username);
 
   /**
+   * Resolves a username as typed by a person on a login or account recovery path to the username to
+   * authenticate or look up.
+   *
+   * <p>The username is used as typed when it has no whitespace at its edges, or when a user with
+   * exactly that username exists. The second case keeps login working for users whose stored
+   * username starts or ends with whitespace. Otherwise the username is returned without edge
+   * whitespace, see {@link Usernames#stripEdgeWhitespace(String)}. Only a username with edge
+   * whitespace costs a user lookup.
+   *
+   * @param username the username as received, may be null
+   * @return the username to use, or null if the input is null
+   */
+  @CheckForNull
+  String resolveTypedUsername(@CheckForNull String username);
+
+  /**
    * Retrieves the User by attempting to look up by various identifiers in the following order:
    *
    * <ul>
