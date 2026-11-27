@@ -958,6 +958,41 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageEventDateWithPeriodsOfDifferentTypes",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithOverlappingPeriodsOfDifferentTypes",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2022;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithRelativePeriodsOfDifferentTypes",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:LAST_12_MONTHS;THIS_YEAR&relativePeriodDate=2022-06-15",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageScheduledDateWithPeriodsOfDifferentTypes",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.SCHEDULED_DATE:2021;2022Q1",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageEventDateWithNonconsecutiveQuartersAndYear",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021;2022Q1;2022Q3",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

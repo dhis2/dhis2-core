@@ -372,6 +372,34 @@ class DateFilterHandlerTest {
     assertThat(queryItem.getDimensionValues(), hasSize(2));
   }
 
+  @Test
+  void applyPeriods_withPeriods_restrictsToTheirSpanAndAddsThemAsDimensionValues() {
+    QueryItem queryItem = createDateQueryItem();
+
+    handler.applyPeriods(queryItem, List.of("202111", "202201"));
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2021-11-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2022-01-31"));
+    assertThat(queryItem.getDimensionValues(), is(List.of("202111", "202201")));
+  }
+
+  @Test
+  void applyPeriods_withSinglePeriod_restrictsToThatPeriod() {
+    QueryItem queryItem = createDateQueryItem();
+
+    handler.applyPeriods(queryItem, List.of("2022Q1"));
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getFilter(), is("2022-01-01"));
+    assertThat(filters.get(1).getFilter(), is("2022-03-31"));
+    assertThat(queryItem.getDimensionValues(), is(List.of("2022Q1")));
+  }
+
   private QueryItem createDateQueryItem() {
     QueryItem queryItem =
         new QueryItem(

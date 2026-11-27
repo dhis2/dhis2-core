@@ -76,6 +76,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner;
 
+  private final StageDatePeriodTypePlanner stageDatePeriodTypePlanner;
+
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
   // -------------------------------------------------------------------------
@@ -89,6 +91,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .add(this::groupByQueryItems)
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByTrackerOrgUnitLevel)
+            .add(stageDatePeriodTypePlanner::plan)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
             .add(firstOrLastStagePeriodPlanner::plan)
@@ -216,16 +219,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    * @return a list of {@link EventQueryParams}.
    */
   private List<EventQueryParams> groupByTrackerOrgUnitLevel(EventQueryParams params) {
-    List<EventQueryParams> queries = List.of(params);
-
-    for (TrackerOrgUnitDimension dimension : TrackerOrgUnitDimension.values()) {
-      queries =
-          queries.stream()
-              .flatMap(query -> splitByTrackerOrgUnitLevel(dimension, query).stream())
-              .toList();
-    }
-
-    return queries;
+    return QueryPlannerUtils.splitInTurn(
+        params, List.of(TrackerOrgUnitDimension.values()), this::splitByTrackerOrgUnitLevel);
   }
 
   /**
