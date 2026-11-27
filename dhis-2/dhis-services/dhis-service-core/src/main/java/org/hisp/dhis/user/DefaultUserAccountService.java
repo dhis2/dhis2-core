@@ -222,7 +222,7 @@ public class DefaultUserAccountService implements UserAccountService {
   @Override
   @Transactional
   public void updateExpiredPassword(String username, String oldPassword, String newPassword)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ConflictException, ForbiddenException {
     if (StringUtils.isBlank(username)
         || StringUtils.isBlank(oldPassword)
         || StringUtils.isBlank(newPassword)) {
@@ -253,6 +253,13 @@ public class DefaultUserAccountService implements UserAccountService {
       throw new BadRequestException("Account is not expired");
     }
 
+    // Prefer email-token recovery when it is available for this account (defense in depth for the
+    // FE steering done at login). Checked only after password + expiry so the conflict is not a
+    // username-enumeration oracle and wrong-password attempts still feed the recovery lockout.
+    if (canUseEmailPasswordRecovery(user)) {
+      throw new ConflictException("Password must be reset using email recovery for this account");
+    }
+
     // The old password was verified against the stored hash above, so plain equality is enough.
     if (newPassword.equals(oldPassword)) {
       throw new BadRequestException("New password must be different from the old password");
@@ -264,6 +271,28 @@ public class DefaultUserAccountService implements UserAccountService {
     userService.updateUser(user, new SystemUser());
 
     log.info("Expired password updated for user: {}", user.getUsername());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canUseEmailPasswordRecovery(@CheckForNull User user) {
+    if (user == null) {
+      return false;
+    }
+    // Mirror the preconditions of forgotPassword, so the reset mail can be sent and used.
+    if (!settingsProvider.getCurrentSettings().getAccountRecoveryEnabled()) {
+      return false;
+    }
+    if (StringUtils.isEmpty(configProvider.getServerBaseUrl())) {
+      return false;
+    }
+    // Only a verified address is trusted to receive the reset token.
+    if (!user.isEmailVerified()) {
+      return false;
+    }
+    // validateRestore: valid email, not external auth, and email sender configured
+    // (host/user/password).
+    return userService.validateRestore(user) == null;
   }
 
   /** Rejects a new password that is equal to the username or fails the password policy. */

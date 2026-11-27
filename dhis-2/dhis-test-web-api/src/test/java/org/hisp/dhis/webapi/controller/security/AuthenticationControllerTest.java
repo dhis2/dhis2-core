@@ -32,12 +32,14 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_BASE_URL;
 import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -52,6 +54,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService.Email2FACode;
@@ -66,8 +69,10 @@ import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,11 +97,30 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   @Autowired private ConfigurableApplicationContext applicationContext;
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  @Autowired private DhisConfigurationProvider configurationProvider;
+
+  private String originalServerBaseUrl;
+
+  @BeforeEach
+  void rememberServerBaseUrl() {
+    originalServerBaseUrl =
+        configurationProvider.getProperties().getProperty(SERVER_BASE_URL.getKey());
+  }
+
   @AfterEach
   void tearDown() {
     settingsService.put("keyLockMultipleFailedLogins", false);
     settingsService.put("credentialsExpires", 0);
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.put("keyEmailHostName", "");
+    settingsService.put("keyEmailUsername", "");
+    settingsService.put("keyEmailPassword", "");
     settingsService.clearCurrentSettings();
+    if (originalServerBaseUrl == null) {
+      configurationProvider.getProperties().remove(SERVER_BASE_URL.getKey());
+    } else {
+      configurationProvider.getProperties().put(SERVER_BASE_URL.getKey(), originalServerBaseUrl);
+    }
     userService.invalidateAllSessions();
     clearSecurityContext();
   }
@@ -566,12 +590,47 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertNull(loginResponse.getRedirectUrl());
   }
 
-  @Test
-  void testLoginWithCredentialsExpiredUser() {
+  static Stream<Arguments> credentialsExpiredCases() {
+    String email = "admin@dhis2.org";
+    return Stream.of(
+        arguments("recovery disabled", false, true, true, email, true, "PASSWORD_EXPIRED"),
+        arguments(
+            "email recovery possible",
+            true,
+            true,
+            true,
+            email,
+            true,
+            "PASSWORD_EXPIRED_EMAIL_RECOVERY"),
+        arguments("no email", true, true, true, null, false, "PASSWORD_EXPIRED"),
+        arguments("SMTP not configured", true, false, true, email, true, "PASSWORD_EXPIRED"),
+        arguments("server base URL unset", true, true, false, email, true, "PASSWORD_EXPIRED"),
+        arguments("email unverified", true, true, true, email, false, "PASSWORD_EXPIRED"));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("credentialsExpiredCases")
+  void testLoginWithCredentialsExpiredUser(
+      String description,
+      boolean recoveryEnabled,
+      boolean smtpConfigured,
+      boolean serverBaseUrlSet,
+      String email,
+      boolean emailVerified,
+      String expectedStatus) {
     settingsService.put("credentialsExpires", 1);
+    settingsService.put("keyAccountRecovery", recoveryEnabled);
+    settingsService.put("keyEmailHostName", smtpConfigured ? "mail.example.com" : "");
+    settingsService.put("keyEmailUsername", smtpConfigured ? "noreply" : "");
+    settingsService.put("keyEmailPassword", smtpConfigured ? "secret" : "");
     settingsService.clearCurrentSettings();
+    configurationProvider
+        .getProperties()
+        .put(SERVER_BASE_URL.getKey(), serverBaseUrlSet ? "http://localhost:8080" : "");
 
     User admin = userService.getUserByUsername("admin");
+    admin.setEmail(email);
+    admin.setVerifiedEmail(emailVerified ? email : null);
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(admin.getPasswordLastUpdated());
@@ -585,7 +644,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
 
-    assertEquals("PASSWORD_EXPIRED", loginResponse.getLoginStatus());
+    assertEquals(expectedStatus, loginResponse.getLoginStatus());
     assertNull(loginResponse.getRedirectUrl());
   }
 

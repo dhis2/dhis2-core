@@ -96,6 +96,11 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @AfterEach
   void afterEach() {
     emailMessageSender.clearMessages();
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.put("credentialsExpires", 0);
+    settingsService.put("keyEmailHostName", "");
+    settingsService.put("keyEmailUsername", "");
+    settingsService.clearCurrentSettings();
   }
 
   @Test
@@ -198,6 +203,9 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   void testUpdatePasswordExpiredOk() {
     String oldPassword = "Str0ng_old_1!";
     String newPassword = "Str0ng_new_1!";
+    // Recovery off (default) keeps the emailless path; pin explicitly against suite order.
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.clearCurrentSettings();
     User user = createExpiredUser("expireda", oldPassword);
     clearSecurityContext();
 
@@ -375,6 +383,81 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   /** A fresh username per test, so the per-user recovery lockout never carries over. */
   private static String uniqueUsername() {
     return "user" + CodeGenerator.generateUid().toLowerCase();
+  }
+
+  @Test
+  @DisplayName(
+      "Expired user with email recovery available cannot use auth/updatePassword (must use email)")
+  void testUpdatePasswordExpiredEmailRecoveryRequired() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expiredemail", oldPassword);
+    // createUserWithAuth sets email username@dhis2.org; verify it and enable recovery + email
+    // settings so validateRestore succeeds (FakeMessageSender is always configured in tests).
+    user.setVerifiedEmail(user.getEmail());
+    userService.updateUser(user);
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.clearCurrentSettings();
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Password must be reset using email recovery for this account",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.CONFLICT));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(oldPassword, updated.getPassword()));
+    assertFalse(userService.userNonExpired(updated));
+  }
+
+  static Stream<Arguments> expiredOldPasswordPathCases() {
+    return Stream.of(
+        arguments("no email", null, false, "http://localhost:8080"),
+        arguments("unverified email", "expiredold@dhis2.org", false, "http://localhost:8080"),
+        arguments("server base URL unset", "expiredold@dhis2.org", true, ""));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("expiredOldPasswordPathCases")
+  @DisplayName("Expired user keeps auth/updatePassword when email recovery cannot complete")
+  void testUpdatePasswordExpiredOldPasswordPathOk(
+      String description, String email, boolean emailVerified, String serverBaseUrl) {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expiredold", oldPassword);
+    user.setEmail(email);
+    user.setVerifiedEmail(emailVerified ? email : null);
+    userService.updateUser(user);
+    configurationProvider
+        .getProperties()
+        .put(ConfigurationKey.SERVER_BASE_URL.getKey(), serverBaseUrl);
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.clearCurrentSettings();
+    clearSecurityContext();
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Password updated",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.OK));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
   }
 
   @Test
