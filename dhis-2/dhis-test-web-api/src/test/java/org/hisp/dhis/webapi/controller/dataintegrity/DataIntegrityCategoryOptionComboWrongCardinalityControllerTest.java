@@ -31,8 +31,13 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests metadata integrity check category option combinations with incorrect cardinality. {@see
@@ -47,7 +52,15 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
 
   private final String detailsIdType = "categoryOptionCombos";
 
+  @Autowired private CategoryOptionComboStore categoryOptionComboStore;
+
+  @Autowired private CategoryOptionStore categoryOptionStore;
+
   private String categoryColor;
+
+  private String categoryOptionRed;
+
+  private String categoryComboTasteAndColor;
 
   @Test
   void setTestCatCombosWrongCardinalityDoesNotExist() {
@@ -56,13 +69,36 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
+  @Test
+  void testCatOptionComboWithWrongCardinalityIsReportedByUid() {
+
+    setupTest();
+    String cocUid =
+        GET("/categoryCombos/{id}?fields=categoryOptionCombos[id]", categoryComboTasteAndColor)
+            .content()
+            .getArray("categoryOptionCombos")
+            .getObject(0)
+            .getString("id")
+            .string();
+
+    // Drop one of the two category options, leaving a COC with one option in a two category combo
+    CategoryOptionCombo coc = categoryOptionComboStore.getByUid(cocUid);
+    CategoryOption red = categoryOptionStore.getByUid(categoryOptionRed);
+    coc.removeCategoryOption(red);
+    categoryOptionComboStore.update(coc);
+    dbmsManager.flushSession();
+
+    // Details must identify the offending category option combo, not its category combo
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, cocUid, null, "Taste and color", true);
+  }
+
   void setupTest() {
     String categoryOptionSour =
         assertStatus(
             HttpStatus.CREATED,
             POST("/categoryOptions", "{ 'name': 'Sour', 'shortName': 'Sour' }"));
 
-    String categoryOptionRed =
+    categoryOptionRed =
         assertStatus(
             HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
@@ -86,16 +122,17 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
                     + categoryOptionSour
                     + "'} ] }"));
 
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/categoryCombos",
-            "{ 'name' : 'Taste and color', "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} , {'id' : '"
-                + categoryTaste
-                + "'}]} "));
+    categoryComboTasteAndColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Taste and color', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + "{'id' : '"
+                    + categoryColor
+                    + "'} , {'id' : '"
+                    + categoryTaste
+                    + "'}]} "));
   }
 }
