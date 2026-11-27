@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,7 +64,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -378,22 +376,6 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("H0PbzJY8bJG"), uids(events));
-    List<Executable> executables =
-        events.stream()
-            .map(
-                e ->
-                    (Executable)
-                        () ->
-                            assertEquals(
-                                2,
-                                e.getAttributeOptionCombo().getCategoryOptions().size(),
-                                String.format(
-                                    "got category options %s",
-                                    e.getAttributeOptionCombo().getCategoryOptions())))
-            .toList();
-    assertAll(
-        "all events should have the optionSize set which is the number of COs in the COC",
-        executables);
   }
 
   @Test

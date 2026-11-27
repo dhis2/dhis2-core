@@ -29,13 +29,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -57,18 +53,5 @@ public interface MetadataMapper {
     }
 
     return identifier;
-  }
-
-  default String map(
-      @Context TrackerIdSchemeParams idSchemeParams,
-      @Context MappingErrors errors,
-      Set<CategoryOption> categoryOptions) {
-    if (categoryOptions == null || categoryOptions.isEmpty()) {
-      return null;
-    }
-
-    return categoryOptions.stream()
-        .map(co -> map(idSchemeParams, errors, co))
-        .collect(Collectors.joining(TextUtils.COMMA));
   }
 }
