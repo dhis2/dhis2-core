@@ -74,7 +74,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -474,11 +473,10 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
     if (recipientType == ProgramNotificationRecipient.USER_GROUP) {
-      userGroupMembers =
-          Optional.ofNullable(template)
-              .map(ProgramNotificationTemplate::getRecipientUserGroup)
-              .map(UserGroup::getMembers)
-              .orElse(userGroupMembers);
+      // Copy the members: removing users from the managed collection deletes their membership
+      if (template.getRecipientUserGroup() != null) {
+        userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
+      }
 
       final boolean limitToHierarchy =
           BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly());
@@ -504,8 +502,6 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
             .filter(u -> u.getOrganisationUnit().equals(parentOrgUnit))
             .collect(Collectors.toSet());
       }
-
-      userGroupMembers.addAll(template.getRecipientUserGroup().getMembers());
     } else if (recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT) {
       userGroupMembers.addAll(orgUnit.getUsers());
     }
