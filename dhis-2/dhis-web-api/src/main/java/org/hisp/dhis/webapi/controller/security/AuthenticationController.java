@@ -44,6 +44,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -106,6 +107,7 @@ public class AuthenticationController {
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
+  @Autowired private UserAccountService userAccountService;
   @Autowired private AppManager appManager;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
@@ -158,7 +160,9 @@ public class AuthenticationController {
       return LoginResponse.builder().loginStatus(STATUS.REQUIRES_TWO_FACTOR_ENROLMENT).build();
 
     } catch (CredentialsExpiredException e) {
-      return LoginResponse.builder().loginStatus(STATUS.PASSWORD_EXPIRED).build();
+      return LoginResponse.builder()
+          .loginStatus(passwordExpiredStatus(loginRequest.getUsername()))
+          .build();
     } catch (LockedException e) {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_LOCKED).build();
     } catch (DisabledException e) {
@@ -166,6 +170,18 @@ public class AuthenticationController {
     } catch (AccountExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
     }
+  }
+
+  /**
+   * Email-capable accounts with working recovery are steered to token reset; others keep the
+   * old-password self-service status.
+   */
+  private STATUS passwordExpiredStatus(String username) {
+    User user = userService.getUserByUsername(username);
+    if (userAccountService.canUseEmailPasswordRecovery(user)) {
+      return STATUS.PASSWORD_EXPIRED_EMAIL_RECOVERY;
+    }
+    return STATUS.PASSWORD_EXPIRED;
   }
 
   private void validateRequest(LoginRequest loginRequest) {
