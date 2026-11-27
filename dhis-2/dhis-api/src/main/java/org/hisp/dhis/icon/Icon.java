@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.icon;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
@@ -43,6 +43,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
@@ -69,8 +70,29 @@ public class Icon implements Serializable {
   @JsonProperty private Date lastUpdated;
   @JsonProperty private User createdBy;
 
+  /**
+   * Plain Jackson responses ({@code GET /api/icons/{key}}) write the file resource with the
+   * identifiable object property set only; field-filtered responses ignore this restriction. {@code
+   * as = IdentifiableObject.class} would drop displayName, which the interface does not annotate.
+   */
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonIncludeProperties({
+    "id",
+    "code",
+    "name",
+    "displayName",
+    "created",
+    "lastUpdated",
+    "lastUpdatedBy",
+    "createdBy",
+    "user",
+    "attributeValues",
+    "translations",
+    "sharing",
+    "access",
+    "href"
+  })
+  @OpenApi.Property(BaseIdentifiableObject.class)
   private FileResource fileResource;
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
