@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,6 +41,7 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -160,8 +162,29 @@ public class Configuration implements Serializable {
     this.systemUpdateNotificationRecipients = systemUpdateNotificationRecipients;
   }
 
+  /**
+   * Serialized with the identifiable object properties only, the shape it had when organisation
+   * unit levels extended {@link BaseIdentifiableObject}. {@code as = IdentifiableObject.class}
+   * would drop displayName, which the interface does not annotate.
+   */
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonIncludeProperties({
+    "id",
+    "code",
+    "name",
+    "displayName",
+    "created",
+    "lastUpdated",
+    "lastUpdatedBy",
+    "createdBy",
+    "user",
+    "attributeValues",
+    "translations",
+    "sharing",
+    "access",
+    "href"
+  })
+  @OpenApi.Property(BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnitLevel getOfflineOrganisationUnitLevel() {
     return offlineOrganisationUnitLevel;
@@ -238,8 +261,29 @@ public class Configuration implements Serializable {
     this.facilityOrgUnitGroupSet = facilityOrgUnitGroupSet;
   }
 
+  /**
+   * Serialized with the identifiable object properties only, the shape it had when organisation
+   * unit levels extended {@link BaseIdentifiableObject}. {@code as = IdentifiableObject.class}
+   * would drop displayName, which the interface does not annotate.
+   */
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonIncludeProperties({
+    "id",
+    "code",
+    "name",
+    "displayName",
+    "created",
+    "lastUpdated",
+    "lastUpdatedBy",
+    "createdBy",
+    "user",
+    "attributeValues",
+    "translations",
+    "sharing",
+    "access",
+    "href"
+  })
+  @OpenApi.Property(BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnitLevel getFacilityOrgUnitLevel() {
     return facilityOrgUnitLevel;
