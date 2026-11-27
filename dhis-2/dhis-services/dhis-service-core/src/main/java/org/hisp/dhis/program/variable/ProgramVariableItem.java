@@ -97,9 +97,10 @@ public class ProgramVariableItem extends ProgramExpressionItem {
   public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     I18n i18n = visitor.getI18nSupplier().get();
 
-    String variableName = i18n.getString(ctx.programVariable().getText());
+    String variable = ctx.programVariable().getText();
 
-    visitor.getItemDescriptions().put(ctx.getText(), variableName);
+    // Key by the item text, not ctx.getText(): for d2:hasValue(V{...}) ctx is the whole call
+    visitor.getItemDescriptions().put("V{" + variable + "}", i18n.getString(variable));
 
     ProgramVariable programVariable = getProgramVariable(ctx);
 
