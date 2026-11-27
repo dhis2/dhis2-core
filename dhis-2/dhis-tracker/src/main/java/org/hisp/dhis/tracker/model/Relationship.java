@@ -59,7 +59,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -226,7 +225,7 @@ public class Relationship extends BaseTrackerObject
    * @return the relationshipType
    */
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   public RelationshipType getRelationshipType() {
     return relationshipType;
   }
