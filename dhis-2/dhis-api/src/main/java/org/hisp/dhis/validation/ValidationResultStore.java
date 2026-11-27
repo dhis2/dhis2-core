@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,4 +53,13 @@ public interface ValidationResultStore extends GenericStore<ValidationResult> {
       Collection<Period> periods);
 
   void delete(ValidationResultsDeletionRequest request);
+
+  /**
+   * Inserts the given results, or updates the left and right side values of a result already
+   * persisted for the same rule, period, org unit, attribute option combo and day in the period.
+   * The notification state of an existing result is kept.
+   *
+   * @param validationResults the results, with persisted periods
+   */
+  void upsert(Collection<ValidationResult> validationResults);
 }
