@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7230;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -44,7 +45,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -53,6 +57,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -1033,5 +1038,159 @@ class GridTest {
 
     // Then
     assertEquals("Header param `headerDoesNotExist` does not exist", thrown.getMessage());
+  }
+
+  @Test
+  void testCopyHeadersAreIndependentOfOriginal() {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("H1"));
+
+    Grid copy = grid.copy();
+
+    grid.addHeader(new GridHeader("H2"));
+
+    assertEquals(2, grid.getHeaders().size());
+    assertEquals(1, copy.getHeaders().size());
+  }
+
+  @Test
+  void testCopyRowsAreIndependentOfOriginal() {
+    Grid grid = new ListGrid();
+    grid.addRow().addValue("A1");
+
+    Grid copy = grid.copy();
+
+    // Appending a new row to the original after copying must not appear in the copy.
+    grid.addRow().addValue("B1");
+    // Appending a value to a row that existed at copy time must not appear in the copy either.
+    grid.getRow(0).add("A2");
+
+    assertEquals(1, copy.getHeight());
+    assertEquals(1, copy.getRow(0).size());
+  }
+
+  @Test
+  void testCopyMetaDataMapIsIndependentButValuesAreShared() {
+    Grid grid = new ListGrid();
+    Object sharedValue = new Object();
+    grid.addMetaData("k1", sharedValue);
+
+    Grid copy = grid.copy();
+
+    grid.addMetaData("k2", "new");
+
+    assertEquals(1, copy.getMetaData().size());
+    assertSame(sharedValue, copy.getMetaData().get("k1"));
+  }
+
+  @Test
+  void testCopyInternalMetaDataMapIsIndependentOfOriginal() {
+    Grid grid = new ListGrid();
+    grid.getInternalMetaData().put("k1", "v1");
+
+    Grid copy = grid.copy();
+
+    grid.getInternalMetaData().put("k2", "v2");
+
+    assertEquals(1, copy.getInternalMetaData().size());
+  }
+
+  @Test
+  void testCopyRowContextMapIsIndependentOfOriginal() {
+    Grid grid = new ListGrid();
+    grid.getRowContext().put(0, Map.of("k", "v"));
+
+    Grid copy = grid.copy();
+
+    grid.getRowContext().put(1, Map.of("k2", "v2"));
+
+    assertEquals(1, copy.getRowContext().size());
+  }
+
+  @Test
+  void testCopyRefsAreIndependentOfOriginal() {
+    Grid grid = new ListGrid();
+    grid.addReference(new Reference("uuid1", null));
+
+    Grid copy = grid.copy();
+
+    grid.addReference(new Reference("uuid2", null));
+
+    assertEquals(1, copy.getRefs().size());
+  }
+
+  @Test
+  void testCopyPreservesScalarFields() {
+    Grid grid = new ListGrid();
+    grid.setTitle("T").setSubtitle("S").setTable("Tab");
+
+    Grid copy = grid.copy();
+
+    assertEquals("T", copy.getTitle());
+    assertEquals("S", copy.getSubtitle());
+    assertEquals("Tab", copy.getTable());
+  }
+
+  @Test
+  void testCopyColumnIndexMapIsConsistentWithHeaders() throws Exception {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("ColA", "colA", ValueType.TEXT, false, true));
+    grid.addRow().addValue(11);
+
+    Grid copy = grid.copy();
+
+    assertTrue(copy.next());
+    assertEquals(11, copy.getFieldValue(new MockJRField("colA")));
+  }
+
+  @Test
+  void testCopyPreservesLastDataRowFlag() {
+    Grid grid = new ListGrid();
+    grid.setLastDataRow(true);
+
+    Grid copy = grid.copy();
+
+    assertTrue(copy.hasLastDataRow());
+  }
+
+  /**
+   * {@link ListGrid#copy()} copies each field explicitly rather than generically (e.g. via
+   * reflection or serialization), so a field added to {@link ListGrid} in the future is silently
+   * dropped from copies (shared by reference, or left at its default) unless {@code copy()} is
+   * updated too. This test has no opinion on how a field should be copied — it exists purely to
+   * fail loudly the moment the field list drifts, forcing whoever adds/removes a field to also look
+   * at {@code copy()} and this list.
+   */
+  @Test
+  void testCopyAccountsForEveryDeclaredField() {
+    Set<String> knownFields =
+        Set.of(
+            "title",
+            "subtitle",
+            "table",
+            "headers",
+            "metaData",
+            "performanceMetrics",
+            "rowContext",
+            "internalMetaData",
+            "grid",
+            "refs",
+            "currentRowWriteIndex",
+            "currentRowReadIndex",
+            "columnIndexMap",
+            "lastDataRow");
+
+    Set<String> actualFields =
+        Arrays.stream(ListGrid.class.getDeclaredFields())
+            .filter(f -> !Modifier.isStatic(f.getModifiers()))
+            .filter(f -> !f.isSynthetic())
+            .map(Field::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        knownFields,
+        actualFields,
+        "ListGrid's instance fields changed - update ListGrid#copy() (and this test's "
+            + "knownFields list) to account for the new/removed field.");
   }
 }
