@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.validation;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -46,7 +44,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -94,9 +91,6 @@ public class ValidationRunContext {
   @lombok.Builder.Default private boolean sendNotifications = false;
 
   @lombok.Builder.Default private boolean persistResults = false;
-
-  private final MapMapMap<OrganisationUnit, ValidationRule, Period, List<ValidationResult>>
-      initialValidationResults = new MapMapMap<>();
 
   // -------------------------------------------------------------------------
   // Return expression details if requested
@@ -162,27 +156,6 @@ public class ValidationRunContext {
   // Logic
   // -------------------------------------------------------------------------
 
-  public boolean skipValidationOfTuple(
-      OrganisationUnit organisationUnit,
-      ValidationRule validationRule,
-      Period period,
-      String attributeOptionCombo,
-      int dayInPeriod) {
-    List<ValidationResult> validationResultList =
-        initialValidationResults.getValue(organisationUnit, validationRule, period);
-
-    if (validationResultList != null) {
-      for (ValidationResult vr : validationResultList) {
-        if (vr.getAttributeOptionCombo().getUid().equals(attributeOptionCombo)
-            && vr.getDayInPeriod() == dayInPeriod) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   public int getNumberOfTasks() {
     return (orgUnits.size() + ORG_UNITS_PER_TASK - 1) / ORG_UNITS_PER_TASK;
   }
@@ -193,32 +166,5 @@ public class ValidationRunContext {
 
   public boolean processExpressionDetails() {
     return validationRuleExpressionDetails != null;
-  }
-
-  public ValidationRunContext addInitialResults(Collection<ValidationResult> results) {
-    validationResults.addAll(results);
-
-    results.forEach(
-        validationResult -> {
-          List<ValidationResult> res =
-              initialValidationResults.getValue(
-                  validationResult.getOrganisationUnit(),
-                  validationResult.getValidationRule(),
-                  validationResult.getPeriod());
-
-          if (res == null) {
-            res = new ArrayList<>();
-          }
-
-          res.add(validationResult);
-
-          initialValidationResults.putEntry(
-              validationResult.getOrganisationUnit(),
-              validationResult.getValidationRule(),
-              validationResult.getPeriod(),
-              res);
-        });
-
-    return this;
   }
 }

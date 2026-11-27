@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -142,6 +144,20 @@ public class DefaultValidationResultService implements ValidationResultService {
     List<Period> persistedPeriods = periodService.reloadPeriods(new ArrayList<>(periods));
     return validationResultStore.getValidationResults(
         orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods);
+  }
+
+  @Transactional
+  @Override
+  public void upsertValidationResults(Collection<ValidationResult> validationResults) {
+    // results share few periods: reload each one once
+    Map<String, Period> periods = new HashMap<>();
+    validationResults.forEach(
+        result ->
+            result.setPeriod(
+                periods.computeIfAbsent(
+                    result.getPeriod().getIsoDate(),
+                    iso -> periodService.reloadPeriod(result.getPeriod()))));
+    validationResultStore.upsert(validationResults);
   }
 
   private void validate(ValidationResultsDeletionRequest request) {
