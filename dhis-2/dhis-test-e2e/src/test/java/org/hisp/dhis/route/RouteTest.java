@@ -30,8 +30,10 @@
 package org.hisp.dhis.route;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -40,6 +42,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 public class RouteTest extends ApiTest {
 
   private RouteActions routeActions;
@@ -74,5 +77,28 @@ public class RouteTest extends ApiTest {
     ApiResponse runApiResponse = routeActions.get(id + "/run");
     runApiResponse.validate().statusCode(200);
     assertNotNull(runApiResponse.getBody().get("version").getAsString());
+  }
+
+  @Test
+  void testRunRouteReturnContentLengthWhenHeadMethodRequest() {
+    JsonObject routeJsonObject = new JsonObject();
+    routeJsonObject.addProperty("name", "another-route-under-test");
+    routeJsonObject.addProperty("url", "http://web:8080/api/schemas");
+
+    JsonObject authJsonObject = new JsonObject();
+    authJsonObject.addProperty("type", "http-basic");
+    authJsonObject.addProperty("username", "admin");
+    authJsonObject.addProperty("password", "district");
+
+    routeJsonObject.add("auth", authJsonObject);
+
+    ApiResponse postApiResponse = routeActions.post(routeJsonObject);
+    postApiResponse.validate().statusCode(201);
+    String id = postApiResponse.getBody().getAsJsonObject("response").get("uid").getAsString();
+
+    ApiResponse runApiResponse = routeActions.head(id + "/run");
+    runApiResponse.validate().statusCode(200);
+    assertTrue(runApiResponse.unwrap().getHeaders().hasHeaderWithName("Content-Length"));
+    assertTrue(Integer.parseInt(runApiResponse.unwrap().getHeader("Content-Length")) > 0);
   }
 }

@@ -36,11 +36,11 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -100,6 +100,7 @@ import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.UriUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.http.client.HttpClientRequest;
 
 /**
@@ -149,7 +150,8 @@ public class RouteService {
           "x-forwarded-port",
           "x-forwarded-proto",
           "x-forwarded-prefix",
-          "forwarded");
+          "forwarded",
+          "range");
 
   private static final Set<String> ALLOWED_RESPONSE_HEADERS =
       Set.of(
@@ -160,7 +162,9 @@ public class RouteService {
           "expires",
           "cache-control",
           "last-modified",
-          "etag");
+          "etag",
+          "content-range",
+          "accept-ranges");
 
   private final List<String> allowedRouteRegexRemoteServers = new ArrayList<>();
 
@@ -558,21 +562,17 @@ public class RouteService {
     if (responseEntityFlux.hasBody()) {
       responseEntityFlux
           .getBody()
+          .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+          .publishOn(Schedulers.boundedElastic(), 8)
           .subscribe(
               dataBuffer -> {
-                try (DataBuffer.ByteBufferIterator byteBufferIterator =
-                    dataBuffer.readableByteBuffers()) {
-                  byte[] bytes;
-                  ByteBuffer byteBuffer;
-                  while (byteBufferIterator.hasNext()) {
-                    byteBuffer = byteBufferIterator.next();
-                    bytes = new byte[byteBuffer.limit()];
-                    byteBuffer.get(bytes);
-                    responseBodyEmitter.send(bytes);
-                  }
+                try {
+                  byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                  dataBuffer.read(bytes);
+                  responseBodyEmitter.send(bytes);
                 } catch (IOException e) {
                   log.error(e.getMessage(), e);
-                  throw new RuntimeException(e);
+                  throw new UncheckedIOException(e);
                 } finally {
                   DataBufferUtils.release(dataBuffer);
                 }
