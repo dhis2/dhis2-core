@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data.stage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -103,6 +104,50 @@ class StageOrgUnitSqlServiceTest {
     assertTrue(whereClause.contains("ax.\"uidlevel2\" in ('ouL2AAAAAAA')"));
     assertTrue(whereClause.contains("ax.\"uidlevel3\" in ('ouL3BBBBBBB')"));
     assertTrue(whereClause.contains("ax.\"ps\" = 's1234567890'"));
+  }
+
+  @Test
+  void shouldMatchAnyLevelAndTheProgramStageInWhereClause() {
+    TestResolver resolver = new TestResolver();
+    EventQueryParams params =
+        new EventQueryParams.Builder().withOrgUnitField(new OrgUnitField(null)).build();
+    QueryItem item = createStageOuItem();
+
+    OrganisationUnit ouLevel2 = new OrganisationUnit();
+    ouLevel2.setUid("ouL2AAAAAAA");
+    OrganisationUnit ouLevel3 = new OrganisationUnit();
+    ouLevel3.setUid("ouL3BBBBBBB");
+    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel = new LinkedHashMap<>();
+    orgUnitsByLevel.put(2, List.of(ouLevel2));
+    orgUnitsByLevel.put(3, List.of(ouLevel3));
+    resolver.orgUnitsByLevel = orgUnitsByLevel;
+
+    DefaultStageOrgUnitSqlService subject =
+        new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
+
+    assertEquals(
+        "((ax.\"uidlevel2\" in ('ouL2AAAAAAA') or ax.\"uidlevel3\" in ('ouL3BBBBBBB'))"
+            + " and ax.\"ps\" = 's1234567890')",
+        subject.whereClause(item, params, AnalyticsType.EVENT));
+  }
+
+  @Test
+  void shouldKeepSingleLevelWhereClauseWithoutInnerParentheses() {
+    TestResolver resolver = new TestResolver();
+    EventQueryParams params =
+        new EventQueryParams.Builder().withOrgUnitField(new OrgUnitField(null)).build();
+    QueryItem item = createStageOuItem();
+
+    OrganisationUnit ouLevel2 = new OrganisationUnit();
+    ouLevel2.setUid("ouL2AAAAAAA");
+    resolver.orgUnitsByLevel = Map.of(2, List.of(ouLevel2));
+
+    DefaultStageOrgUnitSqlService subject =
+        new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
+
+    assertEquals(
+        "(ax.\"uidlevel2\" in ('ouL2AAAAAAA') and ax.\"ps\" = 's1234567890')",
+        subject.whereClause(item, params, AnalyticsType.EVENT));
   }
 
   @Test
