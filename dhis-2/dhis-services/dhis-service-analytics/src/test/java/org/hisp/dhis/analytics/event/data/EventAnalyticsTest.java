@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
@@ -46,6 +48,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -236,6 +240,35 @@ abstract class EventAnalyticsTest {
     params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     params.withTimeField(timeField);
+    return params.build();
+  }
+
+  /**
+   * Creates request params filtering on a district and a facility inside it, with one org unit
+   * filter per level, as the query planner leaves a mixed-level org unit filter in aggregate
+   * queries.
+   */
+  protected EventQueryParams createRequestParamsWithOrgUnitFilterPerLevel(
+      ProgramStage withProgramStage) {
+    OrganisationUnit district = createOrganisationUnit('A');
+    district.setPath("/" + district.getUid());
+    OrganisationUnit facility = createOrganisationUnit('B', district);
+    facility.setPath(district.getPath() + "/" + facility.getUid());
+
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(withProgramStage))
+            .removeDimension(ORGUNIT_DIM_ID);
+
+    for (OrganisationUnit orgUnit : List.of(district, facility)) {
+      params.addFilter(
+          new BaseDimensionalObject(
+              ORGUNIT_DIM_ID,
+              DimensionType.ORGANISATION_UNIT,
+              LEVEL_PREFIX + orgUnit.getLevel(),
+              "Organisation unit",
+              List.of(orgUnit)));
+    }
+
     return params.build();
   }
 

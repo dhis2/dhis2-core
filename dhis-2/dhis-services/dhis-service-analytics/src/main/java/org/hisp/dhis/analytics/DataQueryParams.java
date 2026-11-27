@@ -1132,6 +1132,26 @@ public class DataQueryParams {
     return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions(key);
   }
 
+  /**
+   * Retrieves the options for the dimension with the given identifier or, when that dimension is
+   * absent or has no options, the options of every filter with that identifier. The query planner
+   * can split one filter into several filters with the same identifier, such as one org unit filter
+   * per level.
+   */
+  public List<DimensionalItemObject> getAllDimensionOrFilterItems(String key) {
+    List<DimensionalItemObject> dimensionOptions = getDimensionOptions(key);
+
+    return !dimensionOptions.isEmpty() ? dimensionOptions : getAllFilterOptions(key);
+  }
+
+  /** Retrieves the options of every filter with the given identifier, in filter order. */
+  private List<DimensionalItemObject> getAllFilterOptions(String key) {
+    return filters.stream()
+        .filter(filter -> key.equals(filter.getDimension()))
+        .flatMap(filter -> filter.getItems().stream())
+        .toList();
+  }
+
   /** Returns all dimension items part of dimensions of the given dimension type. */
   public List<DimensionalItemObject> getDimensionalItemObjects(DimensionType dimensionType) {
     return getDimensionsAndFilters(dimensionType).stream()
@@ -2327,10 +2347,10 @@ public class DataQueryParams {
         .collect(Collectors.toList());
   }
 
-  /** Returns all organisation units part of a dimension or filter. */
+  /** Returns all organisation units part of the dimension or of any filter. */
   public List<DimensionalItemObject> getAllOrganisationUnits() {
     return ImmutableList.copyOf(
-        ListUtils.union(getOrganisationUnits(), getFilterOrganisationUnits()));
+        ListUtils.union(getOrganisationUnits(), getAllFilterOptions(ORGUNIT_DIM_ID)));
   }
 
   /** Returns all typed organisation part of a dimension or filter. */

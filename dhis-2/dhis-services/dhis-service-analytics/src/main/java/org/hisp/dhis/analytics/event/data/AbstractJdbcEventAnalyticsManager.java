@@ -3429,7 +3429,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the enrollment pre-filter SQL clause, or empty string if not applicable
    */
   private String buildEnrollmentPrefilterSql(EventQueryParams params) {
-    List<DimensionalItemObject> orgUnits = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+    List<DimensionalItemObject> orgUnits = params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID);
 
     if ((!params.hasStageSpecificItem() && !hasStageSortField(params))
         || orgUnits.isEmpty()

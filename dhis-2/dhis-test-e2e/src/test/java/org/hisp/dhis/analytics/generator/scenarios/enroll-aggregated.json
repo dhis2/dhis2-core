@@ -503,6 +503,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "orgUnitFilterAtDifferentLevelsCountsEveryLevel",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=pe:2022&filter=ou:O6uvpzGd5pu;taKiTcaf05H",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

@@ -629,6 +629,23 @@ class DataQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testGetAllTypedOrganisationUnitsIncludesEveryOrgUnitFilter() {
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOrganisationUnits(List.of(ouA))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouB)))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouC)))
+            .build();
+
+    assertEquals(List.of(ouA, ouB, ouC), params.getAllTypedOrganisationUnits());
+  }
+
+  @Test
   void testGetDataElements() {
     DataQueryParams params =
         DataQueryParams.newBuilder()
@@ -1013,5 +1030,43 @@ class DataQueryParamsTest extends TestBase {
             .build();
 
     assertEquals(Long.MAX_VALUE, params.countDimensionItemPermutations());
+  }
+
+  @Test
+  void testGetAllDimensionOrFilterItemsCollectsEveryFilterWithTheKey() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID,
+                    DimensionType.ORGANISATION_UNIT,
+                    "LEVEL-1",
+                    "Organisation unit",
+                    List.of(ouA)))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID,
+                    DimensionType.ORGANISATION_UNIT,
+                    "LEVEL-2",
+                    "Organisation unit",
+                    List.of(ouB)))
+            .build();
+
+    assertEquals(List.of(ouA, ouB), params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID));
+  }
+
+  @Test
+  void testGetAllDimensionOrFilterItemsPrefersTheDimension() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA)))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouB)))
+            .build();
+
+    assertEquals(List.of(ouA), params.getAllDimensionOrFilterItems(ORGUNIT_DIM_ID));
   }
 }

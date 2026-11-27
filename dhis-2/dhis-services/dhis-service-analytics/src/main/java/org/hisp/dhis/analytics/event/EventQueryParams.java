@@ -1203,7 +1203,7 @@ public class EventQueryParams extends DataQueryParams {
   public Set<OrganisationUnit> getOrganisationUnitChildren() {
     Set<OrganisationUnit> children = new HashSet<>();
 
-    for (DimensionalItemObject object : getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
+    for (DimensionalItemObject object : getAllDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
       children.addAll(unit.getChildren());
     }
