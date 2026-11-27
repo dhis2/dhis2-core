@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.Builder;
 import lombok.Setter;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -368,6 +369,22 @@ class DefaultSchemaValidatorTest {
   @Test
   void testCollectionPropertySizeBetweenMinMaxSize() {
     assertNoError(SimpleFields.builder().string("valid").list(asList(1, 2, 3)).build());
+  }
+
+  /** The property allows 2 to 4 items: sizes below, inside and above that range. */
+  @ParameterizedTest
+  @ValueSource(ints = {0, 3, 5})
+  void testScalarCollectionSizeHasTheSameValidationAsMaterializedCollection(int size) {
+    List<Integer> values = IntStream.rangeClosed(1, size).boxed().toList();
+    var property = schema.getProperty("list");
+    List<ErrorReport> materialized =
+        validator.validateProperty(property, SimpleFields.builder().list(values).build());
+    List<ErrorReport> scalar = validator.validateCollectionSize(property, SimpleFields.class, size);
+    assertEquals(materialized.size(), scalar.size());
+    if (!scalar.isEmpty()) {
+      assertEquals(materialized.get(0).getErrorCode(), scalar.get(0).getErrorCode());
+      assertEquals(materialized.get(0).getMessage(), scalar.get(0).getMessage());
+    }
   }
 
   private void assertError(ErrorCode expected, SimpleFields actual, String expectedMessage) {

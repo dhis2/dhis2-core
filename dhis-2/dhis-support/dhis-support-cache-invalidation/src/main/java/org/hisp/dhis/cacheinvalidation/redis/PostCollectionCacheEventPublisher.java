@@ -40,10 +40,12 @@ import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.event.spi.AbstractCollectionEvent;
 import org.hibernate.event.spi.PreCollectionUpdateEvent;
 import org.hibernate.event.spi.PreCollectionUpdateEventListener;
+import org.hisp.dhis.common.event.CollectionMembershipChangedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Listens to Hibernate events and publishes a message to Redis when a collection is updated.
@@ -65,6 +67,11 @@ public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEve
     onCollectionAction(event, event.getCollection(), collectionEntry.getSnapshot());
   }
 
+  @TransactionalEventListener
+  public void onCollectionMembershipChanged(CollectionMembershipChangedEvent event) {
+    publishInvalidation(event.ownerEntityName(), event.role(), event.ownerId());
+  }
+
   protected void onCollectionAction(
       AbstractCollectionEvent event, PersistentCollection newColl, Serializable oldColl) {
     Integer addedElements = null;
@@ -78,24 +85,25 @@ public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEve
 
     if ((addedElements != null && removedElements != null)
         && !Objects.equals(addedElements, removedElements)) {
-      String affectedOwnerEntityName = event.getAffectedOwnerEntityName();
-      String role = event.getCollection().getRole();
-      Serializable affectedOwnerIdOrNull = event.getAffectedOwnerIdOrNull();
-      String op = CacheEventOperation.COLLECTION.name().toLowerCase();
-
-      String message =
-          serverInstanceId
-              + ":"
-              + op
-              + ":"
-              + affectedOwnerEntityName
-              + ":"
-              + role
-              + ":"
-              + affectedOwnerIdOrNull;
-
-      messagePublisher.publish(CacheInvalidationConfig.CHANNEL_NAME, message);
+      publishInvalidation(
+          event.getAffectedOwnerEntityName(),
+          event.getCollection().getRole(),
+          event.getAffectedOwnerIdOrNull());
     }
+  }
+
+  private void publishInvalidation(String ownerEntityName, String role, Serializable ownerId) {
+    String message =
+        serverInstanceId
+            + ":"
+            + CacheEventOperation.COLLECTION.name().toLowerCase()
+            + ":"
+            + ownerEntityName
+            + ":"
+            + role
+            + ":"
+            + ownerId;
+    messagePublisher.publish(CacheInvalidationConfig.CHANNEL_NAME, message);
   }
 
   private static Integer getNumberOfRemovedElements(Serializable oldCollection) {

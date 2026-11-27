@@ -1,0 +1,289 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.dxf2.metadata.collection;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import javax.sql.DataSource;
+import org.hibernate.Hibernate;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
+
+/**
+ * Two requests that change the same item of the same unloaded collection at once must both succeed,
+ * like the same requests made one after the other: the second one counts the item as ignored.
+ *
+ * <p>The lock that serialises them must not serialise other writers that only reference the owner:
+ * a foreign key check of a row that references the owner neither waits for a collection request nor
+ * makes one wait.
+ *
+ * <p>Deliberately NOT {@code @Transactional}: each request runs in its own committed transaction on
+ * its own thread, which is what creates the contention.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+class CollectionItemsConcurrencyTest extends PostgresIntegrationTestBase {
+  private static final String PROPERTY = "organisationUnits";
+  private static final String INSERT_GROUP_SET_MEMBER =
+      "insert into orgunitgroupsetmembers (orgunitgroupsetid, orgunitgroupid) values (?, ?)";
+
+  @Autowired private CollectionService collectionService;
+  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private TransactionTemplate transactionTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private DataSource dataSource;
+
+  private String group;
+  private long groupId;
+  private long groupSetId;
+  private String unit;
+  private UserDetails admin;
+
+  @BeforeEach
+  void setUp() {
+    OrganisationUnitGroup owner = createOrganisationUnitGroup('A');
+    manager.save(owner);
+    group = owner.getUid();
+    groupId = owner.getId();
+    OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
+    manager.save(groupSet);
+    groupSetId = groupSet.getId();
+    OrganisationUnit item = createOrganisationUnit('A');
+    manager.save(item);
+    unit = item.getUid();
+    admin = CurrentUserUtil.getCurrentUserDetails();
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void concurrentChangeOfTheSameItemIsIgnoredByTheLaterRequest(boolean addition) throws Exception {
+    CountDownLatch firstChanged = new CountDownLatch(1);
+    CountDownLatch firstMayCommit = new CountDownLatch(1);
+    ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      if (!addition) {
+        Future<TypeReport> setup = pool.submit(() -> inTransaction(() -> change(true)));
+        assertEquals(1, setup.get(1, TimeUnit.MINUTES).getStats().updated());
+      }
+      Future<TypeReport> first =
+          pool.submit(
+              () ->
+                  inTransaction(
+                      () -> {
+                        TypeReport report = change(addition);
+                        firstChanged.countDown();
+                        assertTrue(firstMayCommit.await(1, TimeUnit.MINUTES));
+                        return report;
+                      }));
+      assertTrue(firstChanged.await(1, TimeUnit.MINUTES), "first request did not change the item");
+
+      Future<TypeReport> second = pool.submit(() -> inTransaction(() -> change(addition)));
+      await().atMost(1, TimeUnit.MINUTES).until(() -> waitingForLock() > 0 || second.isDone());
+      firstMayCommit.countDown();
+
+      assertEquals(1, changed(first.get(1, TimeUnit.MINUTES), addition));
+      TypeReport later = second.get(1, TimeUnit.MINUTES);
+      assertEquals(0, changed(later, addition));
+      assertEquals(1, later.getStats().ignored());
+    } finally {
+      firstMayCommit.countDown();
+      pool.shutdownNow();
+    }
+    assertEquals(addition ? 1 : 0, members());
+  }
+
+  /**
+   * The group set membership references the group as an enrollment references its program. It is
+   * inserted while a collection request holds the lock of the group and must not wait for it.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void insertThatReferencesTheOwnerDoesNotWaitForACollectionRequest(boolean addition)
+      throws Exception {
+    CountDownLatch requestChanged = new CountDownLatch(1);
+    CountDownLatch requestMayCommit = new CountDownLatch(1);
+    ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      if (!addition) {
+        addMember(pool);
+      }
+      Future<TypeReport> request =
+          pool.submit(
+              () ->
+                  inTransaction(
+                      () -> {
+                        TypeReport report = change(addition);
+                        requestChanged.countDown();
+                        assertTrue(requestMayCommit.await(1, TimeUnit.MINUTES));
+                        return report;
+                      }));
+      assertTrue(requestChanged.await(1, TimeUnit.MINUTES), "request did not change the item");
+
+      Future<Integer> insert =
+          pool.submit(() -> jdbcTemplate.update(INSERT_GROUP_SET_MEMBER, groupSetId, groupId));
+      await().atMost(1, TimeUnit.MINUTES).until(() -> insert.isDone() || waitingForLock() > 0);
+      assertTrue(insert.isDone(), "the insert waits for the collection request");
+      requestMayCommit.countDown();
+
+      assertEquals(1, insert.get(1, TimeUnit.MINUTES));
+      assertEquals(1, changed(request.get(1, TimeUnit.MINUTES), addition));
+    } finally {
+      requestMayCommit.countDown();
+      awaitTermination(pool);
+    }
+    assertEquals(addition ? 1 : 0, members());
+  }
+
+  /**
+   * The reverse of {@link #insertThatReferencesTheOwnerDoesNotWaitForACollectionRequest}: a
+   * transaction that has inserted a row referencing the group, and is still open, does not make a
+   * collection request of the group wait.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void collectionRequestDoesNotWaitForAnInsertThatReferencesTheOwner(boolean addition)
+      throws Exception {
+    ExecutorService pool = Executors.newSingleThreadExecutor();
+    try (Connection concurrent = dataSource.getConnection()) {
+      if (!addition) {
+        addMember(pool);
+      }
+      concurrent.setAutoCommit(false);
+      try (PreparedStatement insert = concurrent.prepareStatement(INSERT_GROUP_SET_MEMBER)) {
+        insert.setLong(1, groupSetId);
+        insert.setLong(2, groupId);
+        assertEquals(1, insert.executeUpdate());
+      }
+      Future<TypeReport> request = pool.submit(() -> inTransaction(() -> change(addition)));
+      try {
+        await().atMost(1, TimeUnit.MINUTES).until(() -> request.isDone() || waitingForLock() > 0);
+        assertTrue(request.isDone(), "the collection request waits for the insert");
+      } finally {
+        concurrent.commit();
+      }
+      assertEquals(1, changed(request.get(1, TimeUnit.MINUTES), addition));
+    } finally {
+      awaitTermination(pool);
+    }
+    assertEquals(addition ? 1 : 0, members());
+  }
+
+  private <T> T inTransaction(TransactionalWork<T> work) {
+    injectSecurityContextNoSettings(admin);
+    return transactionTemplate.execute(
+        status -> {
+          try {
+            return work.run();
+          } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+          }
+        });
+  }
+
+  /**
+   * Lets the tasks of a failed test end before the database is emptied: a blocked insert that
+   * commits after the cleanup would leave a row behind for the next test.
+   */
+  private static void awaitTermination(ExecutorService pool) throws InterruptedException {
+    pool.shutdown();
+    assertTrue(pool.awaitTermination(1, TimeUnit.MINUTES), "concurrent work did not end");
+  }
+
+  /** Commits the item as a member, on a thread of the pool, outside the test's session. */
+  private void addMember(ExecutorService pool) throws Exception {
+    Future<TypeReport> setup = pool.submit(() -> inTransaction(() -> change(true)));
+    assertEquals(1, setup.get(1, TimeUnit.MINUTES).getStats().updated());
+  }
+
+  private TypeReport change(boolean addition) throws Exception {
+    OrganisationUnitGroup owner = manager.get(OrganisationUnitGroup.class, group);
+    List<IdentifiableObject> items = List.of(new BaseIdentifiableObject(unit, "", ""));
+    TypeReport report =
+        addition
+            ? collectionService.addCollectionItems(owner, PROPERTY, items)
+            : collectionService.delCollectionItems(owner, PROPERTY, items);
+    assertFalse(Hibernate.isInitialized(owner.getMembers()), "members must stay unloaded");
+    return report;
+  }
+
+  private static int changed(TypeReport report, boolean addition) {
+    return addition ? report.getStats().updated() : report.getStats().deleted();
+  }
+
+  /** Backends of this database that wait for a lock held by another transaction. */
+  private int waitingForLock() {
+    Integer waiting =
+        jdbcTemplate.queryForObject(
+            "select count(*) from pg_stat_activity where datname = current_database()"
+                + " and wait_event_type = 'Lock'",
+            Integer.class);
+    return waiting == null ? 0 : waiting;
+  }
+
+  private int members() {
+    Integer count =
+        jdbcTemplate.queryForObject(
+            "select count(*) from orgunitgroupmembers m"
+                + " join orgunitgroup g on g.orgunitgroupid = m.orgunitgroupid where g.uid = ?",
+            Integer.class,
+            group);
+    return count == null ? 0 : count;
+  }
+
+  @FunctionalInterface
+  private interface TransactionalWork<T> {
+    T run() throws Exception;
+  }
+}
