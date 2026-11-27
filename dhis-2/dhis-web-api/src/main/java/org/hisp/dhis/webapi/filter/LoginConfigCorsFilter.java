@@ -41,20 +41,22 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Servlet-level CORS for the security-ignored login bootstrap endpoint {@code
- * /api/**&#47;loginConfig}.
+ * Servlet-level cross-origin protection and CORS for the security-ignored login bootstrap endpoint
+ * {@code /api/**&#47;loginConfig}.
  *
  * <p>The endpoint is excluded from the Spring Security filter chain via {@code web.ignoring()}
  * (DHIS2-21909) so public login bootstrap never builds {@code UserDetails}. That also means the
- * security-level {@link CorsFilter} never runs for it, and browser apps on foreign origins (e.g. a
- * local app on {@code http://localhost:3000}) lose the {@code Access-Control-Allow-Origin} header
- * even when whitelisted.
+ * security-level {@link CrossOriginRequestFilter} and {@link CorsFilter} never run for it, and
+ * browser apps on foreign origins (e.g. a local app on {@code http://localhost:3000}) lose the
+ * {@code Access-Control-Allow-Origin} header even when whitelisted.
  *
  * <p>This filter fills that gap outside the security chain, scoped to loginConfig only via {@link
- * #shouldNotFilter(HttpServletRequest)}. It delegates to a {@link CorsFilter} driven by the same
- * {@link DhisCorsProcessor} and system CORS whitelist as the rest of the API, so preflight requests
- * short-circuit with 204 and whitelist rules stay identical. All other paths are untouched,
- * avoiding double CORS headers on endpoints served by the security chain.
+ * #shouldNotFilter(HttpServletRequest)}. It first runs the same {@link CrossOriginRequestFilter} as
+ * the security chain, so a request from an origin that is not allowed gets the same 403. It then
+ * delegates to a {@link CorsFilter} driven by the same {@link DhisCorsProcessor} and system CORS
+ * whitelist as the rest of the API, so preflight requests short-circuit with 204 and whitelist
+ * rules stay identical. All other paths are untouched, avoiding double CORS headers on endpoints
+ * served by the security chain.
  *
  * <p>Registered as a servlet filter before the security chain in {@code
  * DhisWebApiWebAppInitializer#setupServlets}.
@@ -68,9 +70,13 @@ public class LoginConfigCorsFilter extends OncePerRequestFilter {
   private static final AntPathRequestMatcher LOGIN_CONFIG =
       new AntPathRequestMatcher("/api/**/loginConfig");
 
+  private final CrossOriginRequestFilter crossOriginRequestFilter;
+
   private final CorsFilter corsFilter;
 
-  public LoginConfigCorsFilter(DhisCorsProcessor corsProcessor) {
+  public LoginConfigCorsFilter(
+      CrossOriginRequestFilter crossOriginRequestFilter, DhisCorsProcessor corsProcessor) {
+    this.crossOriginRequestFilter = crossOriginRequestFilter;
     CorsFilter delegate = new CorsFilter(new UrlBasedCorsConfigurationSource());
     delegate.setCorsProcessor(corsProcessor);
     this.corsFilter = delegate;
@@ -85,6 +91,7 @@ public class LoginConfigCorsFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    corsFilter.doFilter(request, response, filterChain);
+    crossOriginRequestFilter.doFilter(
+        request, response, (req, res) -> corsFilter.doFilter(req, res, filterChain));
   }
 }

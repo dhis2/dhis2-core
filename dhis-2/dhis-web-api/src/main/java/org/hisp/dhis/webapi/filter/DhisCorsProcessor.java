@@ -30,23 +30,27 @@
 package org.hisp.dhis.webapi.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsProcessor;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * Adds CORS response headers, and answers preflight requests, for origins accepted by {@link
+ * AllowedOriginMatcher}. Requests from other origins get no CORS headers, so browsers cannot read
+ * their responses.
+ *
+ * <p>This processor never rejects a request: {@link CrossOriginRequestFilter} runs before the CORS
+ * filter and rejects requests from origins that are not allowed.
+ */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DhisCorsProcessor implements CorsProcessor {
   public static final String CORS_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
 
@@ -70,11 +74,7 @@ public class DhisCorsProcessor implements CorsProcessor {
 
   private static final Integer MAX_AGE = 60 * 60; // 1hr max-age
 
-  private final ConfigurationService configurationService;
-
-  public DhisCorsProcessor(ConfigurationService configurationService) {
-    this.configurationService = configurationService;
-  }
+  private final AllowedOriginMatcher allowedOriginMatcher;
 
   @Override
   public boolean processRequest(
@@ -90,9 +90,9 @@ public class DhisCorsProcessor implements CorsProcessor {
       return true;
     }
 
-    if (!isOriginWhitelisted(request, origin)) {
-      log.debug("CORS request with origin " + origin + " is not whitelisted");
-      return false;
+    if (!allowedOriginMatcher.isAllowed(request, origin)) {
+      log.debug("CORS request with origin " + origin + " is not allowed, no CORS headers added");
+      return true;
     }
 
     response.addHeader(CORS_ALLOW_CREDENTIALS, "true");
@@ -122,47 +122,5 @@ public class DhisCorsProcessor implements CorsProcessor {
     return RequestMethod.OPTIONS.toString().equals(request.getMethod())
         && !StringUtils.isEmpty(request.getHeader(CORS_ORIGIN))
         && !StringUtils.isEmpty(request.getHeader(CORS_REQUEST_METHOD));
-  }
-
-  private boolean isOriginWhitelisted(HttpServletRequest request, String origin) {
-    HttpServletRequestEncodingWrapper encodingWrapper =
-        new HttpServletRequestEncodingWrapper(request);
-    UriComponentsBuilder uriBuilder =
-        ServletUriComponentsBuilder.fromContextPath(encodingWrapper).replacePath("");
-
-    String forwardedProto = request.getHeader("X-Forwarded-Proto");
-
-    if (!StringUtils.isEmpty(forwardedProto)) {
-      uriBuilder.scheme(forwardedProto);
-    }
-
-    String localUrl = uriBuilder.build().toString();
-
-    return !StringUtils.isEmpty(origin)
-        && (localUrl.equals(origin) || configurationService.isCorsWhitelisted(origin));
-  }
-
-  /**
-   * Simple HttpServletRequestWrapper implementation that makes sure that the query string is
-   * properly encoded.
-   */
-  static class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
-    public HttpServletRequestEncodingWrapper(HttpServletRequest request) {
-      super(request);
-    }
-
-    @Override
-    public String getQueryString() {
-      String queryString = super.getQueryString();
-
-      if (!StringUtils.isEmpty(queryString)) {
-        try {
-          return URLEncoder.encode(queryString, "UTF-8");
-        } catch (UnsupportedEncodingException ignored) {
-        }
-      }
-
-      return queryString;
-    }
   }
 }

@@ -29,12 +29,15 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -46,9 +49,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Web test for CORS on the security-ignored {@code /api/**&#47;loginConfig} endpoint (DHIS2-21909):
- * a whitelisted browser origin must receive CORS headers even though the Spring Security filter
- * chain (and its CorsFilter) is skipped for this path.
+ * Web test for CORS and cross-origin protection on the security-ignored {@code
+ * /api/**&#47;loginConfig} endpoint (DHIS2-21909): a whitelisted browser origin must receive CORS
+ * headers even though the Spring Security filter chain (and its CorsFilter) is skipped for this
+ * path, and an origin that is not allowed gets the same 403 as the rest of the API.
  *
  * <p>The production servlet registration in {@code DhisWebApiWebAppInitializer#setupServlets} is
  * not active in MockMvc, so the filter is added explicitly with its production {@code /api/*}
@@ -62,9 +66,14 @@ class LoginConfigCorsTest extends H2ControllerIntegrationTestBase {
 
   private static final String WHITELISTED_ORIGIN = "http://localhost:3000";
 
+  private static final String REJECTED_MESSAGE =
+      "Cross-origin request rejected: origin is not allowed";
+
   @Autowired private LoginConfigCorsFilter loginConfigCorsFilter;
 
   @Autowired private ConfigurationService configurationService;
+
+  @Autowired private MeterRegistry meterRegistry;
 
   @BeforeEach
   void setUpCors() {
@@ -96,9 +105,42 @@ class LoginConfigCorsTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void getLoginConfigWithNonWhitelistedOriginReturnsNoCorsHeaders() throws Exception {
+  void getLoginConfigWithNonWhitelistedOriginIsRejectedAndCounted() throws Exception {
+    double before = rejectedOriginCount();
+
     mvc.perform(get("/api/loginConfig").header("Origin", "http://evil.example"))
+        .andExpect(status().isForbidden())
+        .andExpect(header().doesNotExist("Access-Control-Allow-Origin"))
+        .andExpect(jsonPath("$.message").value(REJECTED_MESSAGE));
+
+    assertEquals(before + 1, rejectedOriginCount());
+  }
+
+  @Test
+  void preflightOnLoginConfigWithNonWhitelistedOriginIsRejected() throws Exception {
+    mvc.perform(
+            options("/api/loginConfig")
+                .header("Origin", "http://evil.example")
+                .header("Access-Control-Request-Method", "GET"))
+        .andExpect(status().isForbidden())
         .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+  }
+
+  @Test
+  void getLoginConfigFromSameOriginPageWithoutOriginReturnsBody() throws Exception {
+    mvc.perform(get("/api/loginConfig").header("Sec-Fetch-Site", "same-origin"))
+        .andExpect(status().isOk())
+        .andExpect(header().doesNotExist("Access-Control-Allow-Origin"))
+        .andExpect(jsonPath("$.apiVersion").exists());
+  }
+
+  private double rejectedOriginCount() {
+    Counter counter =
+        meterRegistry
+            .find("dhis2_cross_origin_rejected_requests_total")
+            .tag("reason", "origin_not_allowed")
+            .counter();
+    return counter == null ? 0 : counter.count();
   }
 
   @Test
