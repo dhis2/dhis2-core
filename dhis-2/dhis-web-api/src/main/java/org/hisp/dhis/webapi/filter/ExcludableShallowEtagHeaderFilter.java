@@ -74,6 +74,7 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
   private static final String ENDPOINTS =
       "/api/(\\d{2}/)?dataValueSets|"
           + "/api/(\\d{2}/)?dataValues|"
+          + "/api/(\\d{2}/)?routes/.+/run|"
           + "/api/(\\d{2}/)?fileResources|"
           + "/api/(\\d{2}/)?dataEntry/metadata|"
           + "/api/(\\d{2}/)?tracker/events/"

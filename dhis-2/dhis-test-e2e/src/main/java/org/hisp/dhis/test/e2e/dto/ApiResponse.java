@@ -191,4 +191,8 @@ public class ApiResponse {
 
     return this;
   }
+
+  public Response unwrap() {
+    return raw;
+  }
 }

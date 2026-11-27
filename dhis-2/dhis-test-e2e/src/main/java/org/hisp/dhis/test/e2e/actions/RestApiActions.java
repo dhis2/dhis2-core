@@ -275,6 +275,16 @@ public class RestApiActions {
   }
 
   /**
+   * Sends HEAD request.
+   *
+   * @param path Id of resource
+   */
+  public ApiResponse head(String path) {
+    Response head = given().contentType(ContentType.JSON).when().head(path);
+    return new ApiResponse(head);
+  }
+
+  /**
    * Sends PUT request.
    *
    * @param body Body of request

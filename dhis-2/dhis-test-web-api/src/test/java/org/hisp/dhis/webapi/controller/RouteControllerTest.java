@@ -183,9 +183,10 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                       }
                       responseBodyBuilder.put("parts", parts);
                     }
-                    response
-                        .getWriter()
-                        .write(jsonMapper.writeValueAsString(responseBodyBuilder.build()));
+
+                    String body = jsonMapper.writeValueAsString(responseBodyBuilder.build());
+                    response.setContentLength(body.length());
+                    response.getWriter().write(body);
                   })
               .build();
       return new MockMvcHttpConnector(mockMvc);
@@ -341,7 +342,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
               request()
                   .withPath("/")
                   .withContentType(MediaType.APPLICATION_JSON)
-                  .withHeader(NottableString.not("Set-Cookie")))
+                  .withHeader("Range")
+                  .withHeader(NottableString.not("Authorization")))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
@@ -357,11 +359,44 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                       + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
                       + "/run",
                   List.of(
-                      new Header("Set-Cookie", "sessionId=e8bb43229de9; Domain=foo.example.com")),
+                      new Header("Authorization", "Basic YWxpY2U6c2VjcmV0MTIz"),
+                      new Header("Range", "bytes=0-1023")),
                   "application/json",
                   null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    void testRunRouteFiltersResponseHeaders() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response("{}")
+                  .withHeader("Accept-Ranges", "bytes")
+                  .withHeader("Content-Range", "bytes 0-1023/1048576")
+                  .withHeader("Set-Cookie", "sessionId=e8bb43229de9; Domain=foo.example.com"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+      assertFalse(mvcResult.getResponse().containsHeader("Set-Cookie"));
+      assertTrue(mvcResult.getResponse().containsHeader("Accept-Ranges"));
+      assertTrue(mvcResult.getResponse().containsHeader("Content-Range"));
     }
 
     @Test
