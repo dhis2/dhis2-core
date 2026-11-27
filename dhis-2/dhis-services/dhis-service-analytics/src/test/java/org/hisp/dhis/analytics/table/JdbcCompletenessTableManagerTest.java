@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,10 +43,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -64,6 +68,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -169,5 +174,36 @@ class JdbcCompletenessTableManagerTest {
         delete from "analytics_completeness" ax where ax.id in ( select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id from "completedatasetregistration" cdr inner join "dataset" ds on cdr.datasetid=ds.datasetid inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid where cdr.lastupdated >= '2019-03-01T02:00:00' and cdr.lastupdated < '2019-03-01T10:00:00');""";
 
     assertEquals(expected, delete);
+  }
+
+  @Test
+  void testIdColumnIsIndexedByDefault() {
+    assertFalse(getIdColumn().isSkipIndex());
+  }
+
+  @Test
+  void testIdColumnIndexSkippedWhenConfigured() {
+    when(analyticsTableSettings.getSkipIndexDimensions()).thenReturn(Set.of("id"));
+
+    assertTrue(getIdColumn().isSkipIndex());
+  }
+
+  private AnalyticsTableColumn getIdColumn() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(DateUtils.getDate(2025, 5, 1, 10, 45))
+            .build();
+
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(List.of(2025));
+
+    List<AnalyticsTable> tables = manager.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+
+    return tables.get(0).getAnalyticsTableColumns().stream()
+        .filter(c -> "id".equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
   }
 }
