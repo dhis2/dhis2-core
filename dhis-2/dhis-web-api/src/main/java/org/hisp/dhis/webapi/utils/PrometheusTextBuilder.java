@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import io.prometheus.client.exporter.common.TextFormat;
 import java.util.Map;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 /**
  * A simple utility class to build Prometheus text format metrics. The Prometheus text format is
@@ -41,6 +44,19 @@ public class PrometheusTextBuilder {
 
   private StringBuilder metrics = new StringBuilder();
   public static final String GAUGE = "gauge";
+
+  private static final MediaType CONTENT_TYPE =
+      MediaType.parseMediaType(TextFormat.CONTENT_TYPE_004);
+
+  /**
+   * @return the metrics as a response with the Prometheus text format content type. The handler
+   *     sets the content type, so the response is plain text for any Accept header. A handler that
+   *     uses this must also produce {@code application/json}, because DHIS2 negotiates a request
+   *     with {@code Accept: *}{@code /*} or no Accept header as JSON (DHIS2-22599).
+   */
+  public ResponseEntity<String> toResponse() {
+    return ResponseEntity.ok().contentType(CONTENT_TYPE).body(getMetrics());
+  }
 
   public void addHelp(String metricName, String help) {
     metrics.append(String.format("# HELP %s %s%n", metricName, help));

@@ -36,6 +36,7 @@ import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -55,7 +56,14 @@ public class PrometheusScrapeEndpointController {
     this.prometheusRegistry = prometheusRegistry;
   }
 
-  @GetMapping(value = "/api/metrics", produces = TextFormat.CONTENT_TYPE_004)
+  /**
+   * Also produces {@code application/json}, because DHIS2 negotiates a request with {@code Accept:
+   * *}{@code /*} or no Accept header as JSON. The handler sets the content type itself, so the
+   * response is always the Prometheus text format (DHIS2-22599).
+   */
+  @GetMapping(
+      value = "/api/metrics",
+      produces = {TextFormat.CONTENT_TYPE_004, MediaType.APPLICATION_JSON_VALUE})
   public void scrape(HttpServletResponse response) {
     try {
       response.setContentType(TextFormat.CONTENT_TYPE_004);

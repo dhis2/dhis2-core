@@ -44,6 +44,8 @@ import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
 
@@ -524,5 +526,29 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Clean up - delete the user
     userService.deleteUser(a);
     userService.deleteUser(b);
+  }
+
+  /**
+   * The metrics are plain text for any Accept header. Clients such as curl send {@code *}{@code /*}
+   * or no Accept header, which DHIS2 otherwise negotiates as JSON (DHIS2-22599).
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "*/*",
+        "text/plain",
+        "application/json",
+        "application/openmetrics-text;version=1.0.0,text/plain;version=0.0.4;q=0.5,*/*;q=0.1"
+      })
+  void canGetPrometheusMetricsWithAnyAccept(String accept) {
+    for (String path : new String[] {"/api/dataSummary/metrics", "/api/dataSummary/metrics/data"}) {
+      HttpResponse response =
+          accept.isEmpty() ? GET(path) : GET(path, HttpClientAdapter.Accept(accept));
+      String message = path + " with Accept: " + accept;
+      assertEquals(HttpStatus.OK, response.status(), message);
+      assertEquals(
+          "text/plain;version=0.0.4;charset=utf-8", response.header("Content-Type"), message);
+    }
   }
 }

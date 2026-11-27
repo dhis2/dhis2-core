@@ -42,6 +42,7 @@ import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider;
 import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider.SessionGauges;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,9 +109,11 @@ public class DataSummaryController {
    * invitations, sessions and build info. Safe to scrape frequently. The expensive windowed data
    * counts are exposed separately on {@link #getPrometheusDataMetrics()}.
    */
-  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @GetMapping(
+      value = "/metrics",
+      produces = {TEXT_PLAIN_VALUE, APPLICATION_JSON_VALUE})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
-  public @ResponseBody String getPrometheusMetrics() {
+  public ResponseEntity<String> getPrometheusMetrics() {
     DataSummary summary = dataStatisticsService.getSystemStatisticsOverview();
 
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
@@ -139,7 +142,7 @@ public class DataSummaryController {
     appendSessionMetrics(metrics);
 
     appendSystemInfoMetrics(metrics, summary.getSystem());
-    return metrics.getMetrics();
+    return metrics.toResponse();
   }
 
   /**
@@ -148,9 +151,11 @@ public class DataSummaryController {
    * separate, longer-lived cache; scrape this endpoint at a lower frequency than {@link
    * #getPrometheusMetrics()}.
    */
-  @GetMapping(value = "/metrics/data", produces = TEXT_PLAIN_VALUE)
+  @GetMapping(
+      value = "/metrics/data",
+      produces = {TEXT_PLAIN_VALUE, APPLICATION_JSON_VALUE})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
-  public @ResponseBody String getPrometheusDataMetrics() {
+  public ResponseEntity<String> getPrometheusDataMetrics() {
     DataSummary summary = dataStatisticsService.getSystemStatisticsDataCounts();
 
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
@@ -185,7 +190,7 @@ public class DataSummaryController {
         "days",
         "Count of updated enrollments by day");
 
-    return metrics.getMetrics();
+    return metrics.toResponse();
   }
 
   /**
