@@ -95,6 +95,7 @@ public class GridAdaptor {
 
     // Adding metadata info.
     metadataParamsHandler.handle(grid, contextParams, user, rowsCount);
+    metadataParamsHandler.addRequestedPeriods(grid, contextParams);
 
     CommonRequestParams requestParams = contextParams.getCommonRaw();
     CommonParsedParams parsedParams = contextParams.getCommonParsed();

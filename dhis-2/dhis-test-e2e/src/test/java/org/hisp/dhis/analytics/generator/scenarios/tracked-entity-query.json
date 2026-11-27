@@ -258,6 +258,27 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "createdDimensionListsRequestedPeriod",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=CREATED:2017,ou:USER_ORGUNIT&headers=ouname,created&totalPages=false&pageSize=10&page=1&includeMetadataDetails=true&displayProperty=NAME&asc=created&relativePeriodDate=2026-11-27",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "scopedDateDimensionsListRequestedPeriods",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,IpHINAT79UW.ENROLLMENT_DATE:2022,IpHINAT79UW.A03MvHHogjR.EVENT_DATE:2021&headers=ouname,created,IpHINAT79UW.enrollmentdate,A03MvHHogjR.eventdate&totalPages=false&pageSize=10&page=1&includeMetadataDetails=true&displayProperty=NAME&asc=created&relativePeriodDate=2026-11-27",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "dateDimensionMatchesEveryRequestedPeriod",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=CREATED:2018;2017,ou:USER_ORGUNIT&headers=ouname,created&totalPages=false&pageSize=10&page=1&includeMetadataDetails=true&displayProperty=NAME&asc=created&relativePeriodDate=2026-11-27",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

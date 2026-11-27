@@ -52,12 +52,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
@@ -95,6 +97,10 @@ class GridAdaptorTest extends TestBase {
   @Mock private I18nManager i18nManager;
 
   @Mock private I18n i18n;
+
+  private static final String DIMENSIONS_KEY = "dimensions";
+
+  private static final String ITEMS_KEY = "items";
 
   private GridAdaptor gridAdaptor;
 
@@ -219,6 +225,38 @@ class GridAdaptorTest extends TestBase {
     assertTrue(isNotEmpty(grid.getHeaders()));
     assertTrue(MapUtils.isNotEmpty(grid.getMetaData()));
     assertTrue(isEmpty(grid.getRows()));
+  }
+
+  @Test
+  void testCreateGridListsPeriodsRequestedByDateDimension() {
+    // Given
+    DimensionIdentifier<DimensionParam> created =
+        DimensionIdentifier.of(
+            emptyElementWithOffset(),
+            emptyElementWithOffset(),
+            DimensionParam.ofObject(
+                StaticDimension.CREATED.name(), DIMENSIONS, UID, List.of("2017")));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonParsed(
+                CommonParsedParams.builder().dimensionIdentifiers(List.of(created)).build())
+            .commonRaw(new CommonRequestParams())
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType())
+                    .build())
+            .build();
+
+    // When
+    Grid grid =
+        gridAdaptor.createGrid(
+            Optional.empty(), 0, contextParams, List.of(ofUnquoted("t_1", null, "created")), null);
+
+    // Then
+    assertEquals(
+        List.of("2017"), ((Map<?, ?>) grid.getMetaData().get(DIMENSIONS_KEY)).get("created"));
+    assertTrue(((Map<?, ?>) grid.getMetaData().get(ITEMS_KEY)).containsKey("2017"));
   }
 
   @Test

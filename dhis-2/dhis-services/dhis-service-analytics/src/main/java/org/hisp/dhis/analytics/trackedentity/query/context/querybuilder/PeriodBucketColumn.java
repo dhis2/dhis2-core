@@ -31,18 +31,13 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.trackedentity.query.PeriodStaticDimensionCondition;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.RelativePeriodEnum;
 
 /**
  * Resolves the period a date dimension's values are bucketed into, named as the column of {@code
@@ -78,43 +73,14 @@ public class PeriodBucketColumn {
    * @return the distinct periods, in request order.
    */
   public static List<PeriodDimension> periods(DimensionIdentifier<DimensionParam> dimension) {
-    Map<String, PeriodDimension> periods = new LinkedHashMap<>();
-
-    for (DimensionParamItem item : dimension.getDimension().getItems()) {
-      if (item.getOperator().getQueryOperator() != QueryOperator.EQ) {
-        return List.of();
-      }
-      for (String value : item.getValues()) {
-        List<PeriodDimension> valuePeriods = periodsOf(value);
-        if (valuePeriods.isEmpty()) {
-          return List.of();
-        }
-        valuePeriods.forEach(period -> periods.putIfAbsent(period.getIsoDate(), period));
-      }
-    }
+    List<PeriodDimension> periods = PeriodStaticDimensionCondition.periods(dimension);
 
     long periodTypes =
-        periods.values().stream()
-            .map(period -> period.getPeriodType().getName())
-            .distinct()
-            .count();
+        periods.stream().map(period -> period.getPeriodType().getName()).distinct().count();
     if (periodTypes > 1) {
       return List.of();
     }
 
-    return List.copyOf(periods.values());
-  }
-
-  /**
-   * Returns the periods the given value stands for: the periods a relative period name spans, the
-   * ISO period itself, or none for any other value.
-   */
-  private static List<PeriodDimension> periodsOf(String value) {
-    if (RelativePeriodEnum.contains(value)) {
-      return PeriodStaticDimensionCondition.relativePeriods(value);
-    }
-
-    PeriodDimension period = PeriodDimension.of(value);
-    return period == null ? List.of() : List.of(period);
+    return periods;
   }
 }

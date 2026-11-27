@@ -36,7 +36,9 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -46,11 +48,11 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
+import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.DateField;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
@@ -96,29 +98,42 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     return AndCondition.of(conditions).render();
   }
 
+  /**
+   * Returns the conditions of the given item. An item compared with an operator is a single
+   * condition over all its values. Otherwise each value selects a period, a date range or a date of
+   * its own, and a row matches when it falls in any of them.
+   */
   private List<Renderable> processItem(DimensionParamItem item, String columnName) {
-    List<Renderable> conditions = new ArrayList<>();
     List<String> values = item.getValues();
 
     if (values.isEmpty()) {
-      return conditions;
+      return List.of();
     }
-
-    String value = values.get(0);
 
     if (isOperatorFormat(item)) {
-      conditions.add(createOperatorCondition(item, columnName));
-    } else if (isDateRange(value)) {
-      conditions.addAll(createDateRangeConditions(value, columnName));
-    } else if (isRelativePeriod(value)) {
-      conditions.addAll(createRelativePeriodConditions(value, columnName));
-    } else if (isIsoPeriod(value)) {
-      conditions.addAll(createIsoPeriodConditions(value, columnName));
-    } else {
-      conditions.add(createOperatorCondition(item, columnName));
+      return List.of(createOperatorCondition(item, values, columnName));
     }
 
-    return conditions;
+    List<AndCondition> valueConditions =
+        values.stream()
+            .map(value -> AndCondition.of(processValue(item, value, columnName)))
+            .toList();
+
+    return List.of(OrCondition.ofList(valueConditions));
+  }
+
+  private List<Renderable> processValue(DimensionParamItem item, String value, String columnName) {
+    if (isDateRange(value)) {
+      return createDateRangeConditions(value, columnName);
+    }
+
+    List<PeriodDimension> periods = periodsOf(value);
+
+    if (periods.isEmpty() && !RelativePeriodEnum.contains(value)) {
+      return List.of(createOperatorCondition(item, List.of(value), columnName));
+    }
+
+    return createPeriodConditions(periods, columnName);
   }
 
   private boolean isOperatorFormat(DimensionParamItem item) {
@@ -134,25 +149,10 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     return DATE_RANGE_PATTERN.matcher(value).matches();
   }
 
-  private boolean isRelativePeriod(String value) {
-    return RelativePeriodEnum.contains(value);
-  }
-
-  private boolean isIsoPeriod(String value) {
-    try {
-      return Period.of(value) != null;
-    } catch (IllegalArgumentException e) {
-      return false;
-    }
-  }
-
-  private Renderable createOperatorCondition(DimensionParamItem item, String columnName) {
+  private Renderable createOperatorCondition(
+      DimensionParamItem item, List<String> values, String columnName) {
     return BinaryConditionRenderer.of(
-        columnResolver.resolve(columnName),
-        item.getOperator(),
-        item.getValues(),
-        DATE,
-        queryContext);
+        columnResolver.resolve(columnName), item.getOperator(), values, DATE, queryContext);
   }
 
   private List<Renderable> createDateRangeConditions(String value, String columnName) {
@@ -175,19 +175,62 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
   }
 
   /**
+   * Returns the periods the dimension's items select. A relative period contributes every period it
+   * spans and an ISO period contributes itself. The list is empty when an item is a comparison, a
+   * date range or any other value that is not a period.
+   *
+   * @param dimension the date dimension identifier.
+   * @return the distinct periods, in request order.
+   */
+  public static List<PeriodDimension> periods(DimensionIdentifier<DimensionParam> dimension) {
+    Map<String, PeriodDimension> periods = new LinkedHashMap<>();
+
+    for (DimensionParamItem item : dimension.getDimension().getItems()) {
+      if (item.getOperator().getQueryOperator() != QueryOperator.EQ) {
+        return List.of();
+      }
+      for (String value : item.getValues()) {
+        List<PeriodDimension> valuePeriods = periodsOf(value);
+        if (valuePeriods.isEmpty()) {
+          return List.of();
+        }
+        valuePeriods.forEach(period -> periods.putIfAbsent(period.getIsoDate(), period));
+      }
+    }
+
+    return List.copyOf(periods.values());
+  }
+
+  /**
+   * Returns the periods the given value stands for: the periods a relative period name spans, the
+   * ISO period itself, or none for any other value.
+   */
+  private static List<PeriodDimension> periodsOf(String value) {
+    if (RelativePeriodEnum.contains(value)) {
+      return relativePeriods(value);
+    }
+
+    PeriodDimension period = PeriodDimension.of(value);
+    return period == null ? List.of() : List.of(period);
+  }
+
+  /**
    * Returns the periods a relative period name spans, relative to the current date.
    *
    * @param value a {@link RelativePeriodEnum} name.
    * @return the periods, in chronological order.
    */
-  public static List<PeriodDimension> relativePeriods(String value) {
+  private static List<PeriodDimension> relativePeriods(String value) {
     return RelativePeriods.getRelativePeriodsFromEnum(
         RelativePeriodEnum.valueOf(value), DateField.withDefaults(), null, false, null, null);
   }
 
-  private List<Renderable> createRelativePeriodConditions(String value, String columnName) {
-    List<PeriodDimension> periods = relativePeriods(value);
-
+  /**
+   * Returns the conditions matching a date from the start of the first given period to the end of
+   * the last one, or none when there is no period.
+   */
+  private List<Renderable> createPeriodConditions(
+      List<PeriodDimension> periods, String columnName) {
     if (periods.isEmpty()) {
       return List.of();
     }
@@ -196,11 +239,6 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     Date endDate = periods.get(periods.size() - 1).getEndDate();
 
     return createDateConditions(startDate, endDate, columnName);
-  }
-
-  private List<Renderable> createIsoPeriodConditions(String value, String columnName) {
-    Period period = Period.of(value);
-    return createDateConditions(period.getStartDate(), period.getEndDate(), columnName);
   }
 
   private List<Renderable> createDateConditions(Date startDate, Date endDate, String columnName) {
