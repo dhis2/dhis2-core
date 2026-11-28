@@ -363,8 +363,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       progress.failedStage(
           format(
               "Continuous update skipped for '{}': the analytics table was created before "
-                  + "continuous updates were supported on this database. Run a full analytics "
-                  + "table rebuild before running a continuous (lastYears=0) update",
+                  + "continuous updates were supported on this database, or lacks columns which "
+                  + "the update requires. Run a full analytics table rebuild before running a "
+                  + "continuous (lastYears=0) update",
               tableType));
       clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
       return false;
